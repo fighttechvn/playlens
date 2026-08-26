@@ -71,6 +71,31 @@ CWS_ITEM_ID=...
 
 The draft-by-default is deliberate: an upload is reversible, a submission is not.
 
+## From GitHub Actions
+
+`.github/workflows/publish.yml` runs the same script in CI. Add the four values from
+`.env.cws` as **repository secrets** (*Settings → Secrets and variables → Actions*),
+using the same names: `CWS_CLIENT_ID`, `CWS_CLIENT_SECRET`, `CWS_REFRESH_TOKEN`,
+`CWS_ITEM_ID`.
+
+Then a release ships itself:
+
+```bash
+# bump "version" in manifest.json, commit, then:
+gh release create v1.6.0 --generate-notes
+```
+
+Publishing a GitHub release uploads the build **and submits it for review** — cutting a
+release is already the deliberate ship gesture. The workflow refuses to run if the tag
+and the manifest version disagree, which is the mistake that otherwise burns a version
+number.
+
+To upload without submitting, run the workflow manually from the Actions tab and leave
+the *Submit for review* box unchecked.
+
+If you want a human gate on publishing, create an environment named `chrome-web-store`
+with required reviewers and add `environment: chrome-web-store` to the job.
+
 ## Notes
 
 - A version number can only go up, and can never be reused — even for a rejected build.

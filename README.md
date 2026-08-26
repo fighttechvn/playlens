@@ -40,7 +40,9 @@ Once the item exists, version updates are one command:
 ./tools/publish.sh --publish    # upload and submit for review
 ```
 
-Setup for that (OAuth client, refresh token, item ID) is in [store/api-publishing.md](store/api-publishing.md).
+Or let CI do it — with the four `CWS_*` repository secrets set, publishing a GitHub release uploads the build and submits it for review (`.github/workflows/publish.yml`).
+
+Setup for either path (OAuth client, refresh token, item ID) is in [store/api-publishing.md](store/api-publishing.md).
 
 ## Branches & CI
 

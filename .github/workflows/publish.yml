@@ -1,0 +1,61 @@
+name: Publish to Chrome Web Store
+
+# Only works once the item exists and its listing is complete — the Chrome Web
+# Store API moves packages but cannot write listing text, screenshots or the
+# privacy declarations. Do the first submission by hand (store/listing.md),
+# then this workflow handles every version after it.
+#
+# Requires four repository secrets: CWS_CLIENT_ID, CWS_CLIENT_SECRET,
+# CWS_REFRESH_TOKEN, CWS_ITEM_ID. See store/api-publishing.md.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      submit:
+        description: "Submit for review (otherwise upload as a draft)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: cws-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the release tag matches the manifest version
+        if: github.event_name == 'release'
+        run: |
+          manifest=$(python3 -c "import json;print(json.load(open('manifest.json'))['version'])")
+          tag="${GITHUB_REF_NAME#v}"
+          if [[ "$manifest" != "$tag" ]]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match manifest version $manifest"
+            exit 1
+          fi
+          echo "v$manifest"
+
+      - name: Upload to the Chrome Web Store
+        env:
+          CWS_CLIENT_ID: ${{ secrets.CWS_CLIENT_ID }}
+          CWS_CLIENT_SECRET: ${{ secrets.CWS_CLIENT_SECRET }}
+          CWS_REFRESH_TOKEN: ${{ secrets.CWS_REFRESH_TOKEN }}
+          CWS_ITEM_ID: ${{ secrets.CWS_ITEM_ID }}
+        run: |
+          # Publishing a GitHub release is already the deliberate "ship it"
+          # gesture, so it submits. A manual run has to opt in.
+          if [[ "${{ github.event_name }}" == "release" || "${{ inputs.submit }}" == "true" ]]; then
+            ./tools/publish.sh --publish
+          else
+            ./tools/publish.sh
+          fi
+
+      - name: Attach the uploaded package to the release
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "$GITHUB_REF_NAME" dist/playlens.zip --clobber

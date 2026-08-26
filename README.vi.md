@@ -40,7 +40,9 @@ Khi item đã tồn tại, các lần cập nhật version chỉ còn một lệ
 ./tools/publish.sh --publish    # upload và gửi duyệt
 ```
 
-Cách cài đặt (OAuth client, refresh token, item ID) ở [store/api-publishing.md](store/api-publishing.md).
+Hoặc để CI làm — khi đã set 4 secret `CWS_*` trong repo, chỉ cần tạo GitHub release là workflow tự upload và gửi duyệt (`.github/workflows/publish.yml`).
+
+Cách cài đặt cho cả hai đường (OAuth client, refresh token, item ID) ở [store/api-publishing.md](store/api-publishing.md).
 
 ## Nhánh & CI
 

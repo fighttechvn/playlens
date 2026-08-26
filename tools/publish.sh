@@ -18,19 +18,26 @@ ENV_FILE=".env.cws"
 PUBLISH=false
 [[ "${1:-}" == "--publish" ]] && PUBLISH=true
 
-if [[ ! -f "$ENV_FILE" ]]; then
-  echo "✗ $ENV_FILE not found. See store/api-publishing.md for how to create it." >&2
+# Credentials come from the environment when running in CI, and from the
+# gitignored .env.cws when running locally.
+if [[ -f "$ENV_FILE" ]]; then
+  # shellcheck disable=SC1090
+  source "$ENV_FILE"
+fi
+
+MISSING=()
+for var in CWS_CLIENT_ID CWS_CLIENT_SECRET CWS_REFRESH_TOKEN CWS_ITEM_ID; do
+  [[ -z "${!var:-}" ]] && MISSING+=("$var")
+done
+if (( ${#MISSING[@]} )); then
+  echo "✗ Missing: ${MISSING[*]}" >&2
+  if [[ -f "$ENV_FILE" ]]; then
+    echo "  Add them to $ENV_FILE — see store/api-publishing.md." >&2
+  else
+    echo "  Set them in the environment, or create $ENV_FILE — see store/api-publishing.md." >&2
+  fi
   exit 1
 fi
-# shellcheck disable=SC1090
-source "$ENV_FILE"
-
-for var in CWS_CLIENT_ID CWS_CLIENT_SECRET CWS_REFRESH_TOKEN CWS_ITEM_ID; do
-  if [[ -z "${!var:-}" ]]; then
-    echo "✗ $var is not set in $ENV_FILE" >&2
-    exit 1
-  fi
-done
 
 VERSION=$(python3 -c "import json;print(json.load(open('manifest.json'))['version'])")
 ZIP="dist/playlens-v${VERSION}.zip"
