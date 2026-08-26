@@ -1,4 +1,4 @@
-const DEFAULTS = { overlay: true, inline: true, panel: true, panelOpen: false };
+const DEFAULTS = { overlay: true, inline: true, panel: true, panelOpen: false, recent: true };
 
 const boxes = {};
 for (const key of Object.keys(DEFAULTS)) {
@@ -31,6 +31,15 @@ document.getElementById('clearCache').addEventListener('click', () => {
     const keys = Object.keys(all).filter((k) => k.startsWith('app:'));
     chrome.storage.local.remove(keys, () => {
       status.textContent = 'Đã xóa ' + keys.length + ' app khỏi cache.';
+      setTimeout(() => (status.textContent = ''), 3000);
+    });
+  });
+});
+
+document.getElementById('clearRecent').addEventListener('click', () => {
+  chrome.storage.local.get({ recent: [] }, ({ recent }) => {
+    chrome.storage.local.set({ recent: [] }, () => {
+      status.textContent = 'Đã xóa ' + recent.length + ' app khỏi Recent.';
       setTimeout(() => (status.textContent = ''), 3000);
     });
   });

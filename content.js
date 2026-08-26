@@ -17,11 +17,15 @@
   const CACHE_TTL_MS = 12 * 60 * 60 * 1000; // 12h
   const CONCURRENCY = 3;
 
+  const RECENT_KEY = 'recent';
+  const RECENT_MAX = 60;
+
   const DEFAULT_FLAGS = {
     overlay: true, // badge on each icon
     inline: true, // info line under the card's rating
     panel: true, // side panel available (opens via floating button)
     panelOpen: false, // panel expanded state (persisted)
+    recent: true, // remember apps whose detail page was opened
   };
 
   const state = {
@@ -29,6 +33,8 @@
     apps: new Map(), // id -> {id, name, icon, order, status: 'loading'|'ok'|'error', info}
     order: 0,
     sort: { key: 'page', dir: 1 }, // key: page|name|downloads|rating|reviews|updated
+    view: 'page', // panel view: page (apps on this page) | recent (visited apps)
+    recent: [], // [{id, name, icon, info, t}] newest first, from storage.local
   };
 
   const seenIds = new Set();
@@ -63,6 +69,12 @@
   function watchFlags() {
     try {
       chrome.storage.onChanged.addListener((changes, area) => {
+        // Recent list is shared: another tab (or the options page) may change it.
+        if (area === 'local' && changes[RECENT_KEY]) {
+          state.recent = changes[RECENT_KEY].newValue || [];
+          if (state.view === 'recent') schedulePanelRender();
+          return;
+        }
         if (area !== 'sync') return;
         for (const k of Object.keys(changes)) {
           if (k in DEFAULT_FLAGS) state.flags[k] = changes[k].newValue;
@@ -100,6 +112,35 @@
     storageSet('local', { ['app:' + id]: { ...data, t: Date.now() } });
   }
 
+  // ---------- recently viewed apps (storage.local, survives restarts) ----------
+
+  async function loadRecent() {
+    const obj = await storageGet('local', RECENT_KEY);
+    state.recent = Array.isArray(obj[RECENT_KEY]) ? obj[RECENT_KEY] : [];
+  }
+
+  // Called when an app's own detail page is opened — that, not merely seeing a
+  // card in a list, is what "visited" means.
+  function rememberRecent(app) {
+    if (!state.flags.recent || !app.info) return;
+    const entry = {
+      id: app.id,
+      name: app.name || app.id,
+      icon: app.icon || app.info.icon || null,
+      info: app.info,
+      t: Date.now(),
+    };
+    state.recent = [entry, ...state.recent.filter((r) => r.id !== app.id)].slice(0, RECENT_MAX);
+    storageSet('local', { [RECENT_KEY]: state.recent });
+    if (state.view === 'recent') schedulePanelRender();
+  }
+
+  function clearRecent() {
+    state.recent = [];
+    storageSet('local', { [RECENT_KEY]: [] });
+    renderPanel();
+  }
+
   // ---------- fetch + parse ----------
 
   async function fetchAppInfo(id) {
@@ -111,7 +152,14 @@
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const html = await res.text();
 
-    const info = { name: null, downloads: null, rating: null, reviews: null, updated: null };
+    const info = {
+      name: null,
+      icon: null,
+      downloads: null,
+      rating: null,
+      reviews: null,
+      updated: null,
+    };
 
     // JSON-LD block: exact name, rating value and review count
     const ldm = html.match(/<script type="application\/ld\+json"[^>]*>(.*?)<\/script>/s);
@@ -119,6 +167,7 @@
       try {
         const ld = JSON.parse(ldm[1]);
         if (ld.name) info.name = ld.name;
+        if (typeof ld.image === 'string') info.icon = ld.image;
         if (ld.aggregateRating) {
           info.rating = Math.round(parseFloat(ld.aggregateRating.ratingValue) * 10) / 10;
           info.reviews = parseInt(ld.aggregateRating.ratingCount, 10);
@@ -188,15 +237,22 @@
   function renderBadge(badge, info) {
     badge.classList.remove('plsi-loading', 'plsi-error');
     badge.textContent = '';
+    badge.plsiInfo = info; // kept so the badge can re-render if the icon resizes
+    // A list-row icon is ~64px wide; the full strip would just be clipped there,
+    // so drop the review count and shorten the date instead of losing them.
+    const tight = badge.classList.contains('plsi-badge-sm');
     const line1 = [];
     if (info.downloads) line1.push('⬇' + info.downloads);
-    if (info.reviews != null) {
+    if (tight) {
+      if (info.rating != null) line1.push(info.rating + '★');
+    } else if (info.reviews != null) {
       const r = info.rating != null ? info.rating + '★ ' : '';
       line1.push(r + compact(info.reviews));
     }
     if (line1.length) badge.appendChild(el('span', null, line1.join(' · ')));
     if (info.updated) {
-      badge.appendChild(el('span', freshnessClass(info.updated), '⟳ ' + info.updated));
+      const when = tight ? shortDate(info.updated) : info.updated;
+      badge.appendChild(el('span', freshnessClass(info.updated), '⟳ ' + when));
     }
     if (!badge.childNodes.length) badge.appendChild(el('span', null, 'no data'));
   }
@@ -267,8 +323,20 @@
   let panelBody = null; // tbody
   let panelHead = null; // tr of th cells
   let panelCount = null;
+  let panelTabs = []; // view switcher buttons
+  let clearBtn = null;
+  let emptyNote = null;
   let fab = null; // floating toggle button
   let renderTimer = null;
+
+  function setView(view) {
+    if (state.view === view) return;
+    state.view = view;
+    // "page" order and "recent" order mean different things — start each view
+    // in its own natural order rather than carrying a sort across.
+    state.sort = { key: 'page', dir: 1 };
+    renderPanel();
+  }
 
   function ensurePanel() {
     if (panel) return;
@@ -296,7 +364,7 @@
     copy.title = 'Copy list as CSV';
     copy.addEventListener('click', () => {
       const rows = [['package', 'name', 'downloads', 'rating', 'reviews', 'updated']];
-      for (const a of sortedApps()) {
+      for (const a of currentRows()) {
         const i = a.info || {};
         rows.push([a.id, a.name || '', i.downloads || '', i.rating ?? '', i.reviews ?? '', i.updated || '']);
       }
@@ -321,6 +389,24 @@
 
     header.appendChild(controls);
     panel.appendChild(header);
+
+    const tabs = el('div', 'plsi-tabs');
+    for (const t of [
+      { key: 'page', label: 'This page', title: 'Apps found on the page you are on' },
+      { key: 'recent', label: 'Recent', title: 'Apps whose detail page you opened, saved on this device' },
+    ]) {
+      const b = el('button', 'plsi-tab', t.label);
+      b.dataset.view = t.key;
+      b.title = t.title;
+      b.addEventListener('click', () => setView(t.key));
+      tabs.appendChild(b);
+      panelTabs.push(b);
+    }
+    clearBtn = el('button', 'plsi-btn plsi-clear', 'Clear');
+    clearBtn.title = 'Forget every app in the recent list';
+    clearBtn.addEventListener('click', clearRecent);
+    tabs.appendChild(clearBtn);
+    panel.appendChild(tabs);
 
     const wrap = el('div', 'plsi-panel-list');
     const table = el('table', 'plsi-table');
@@ -361,7 +447,8 @@
   function removePanel() {
     panel?.remove();
     fab?.remove();
-    panel = panelBody = panelHead = panelCount = fab = null;
+    panel = panelBody = panelHead = panelCount = clearBtn = emptyNote = fab = null;
+    panelTabs = [];
   }
 
   function setPanelOpen(open) {
@@ -388,8 +475,26 @@
     }
   }
 
-  function sortedApps() {
-    const apps = [...state.apps.values()];
+  // Rows for whichever view is showing. Recent entries are stored flat, so they
+  // are shaped like scanned apps here and both views share one render path.
+  function currentRows() {
+    if (state.view === 'recent') {
+      return sortRows(
+        state.recent.map((r, i) => ({
+          id: r.id,
+          name: r.name,
+          icon: r.icon,
+          info: r.info,
+          seenAt: r.t,
+          order: i, // storage order is newest-first
+          status: 'ok',
+        }))
+      );
+    }
+    return sortRows([...state.apps.values()]);
+  }
+
+  function sortRows(apps) {
     const { key, dir } = state.sort;
     apps.sort((a, b) => {
       const va = sortValue(a, key);
@@ -408,6 +513,16 @@
     return d.getDate() + '/' + (d.getMonth() + 1) + '/' + String(d.getFullYear()).slice(2);
   }
 
+  function ago(t) {
+    const mins = Math.round((Date.now() - t) / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return mins + 'm ago';
+    const hours = Math.round(mins / 60);
+    if (hours < 24) return hours + 'h ago';
+    const days = Math.round(hours / 24);
+    return days < 30 ? days + 'd ago' : Math.round(days / 30) + 'mo ago';
+  }
+
   function schedulePanelRender() {
     if (renderTimer) return;
     renderTimer = setTimeout(() => {
@@ -418,7 +533,13 @@
 
   function renderPanel() {
     if (!panelBody) return;
-    panelCount.textContent = String(state.apps.size);
+
+    const rows = currentRows();
+    panelCount.textContent = String(rows.length);
+    for (const b of panelTabs) {
+      b.classList.toggle('plsi-tab-active', b.dataset.view === state.view);
+    }
+    clearBtn.classList.toggle('plsi-hidden', state.view !== 'recent' || !state.recent.length);
 
     // sort indicators on headers
     for (const th of panelHead.children) {
@@ -429,8 +550,24 @@
     }
 
     panelBody.textContent = '';
-    for (const app of sortedApps()) {
-      const tr = el('tr', 'plsi-row');
+
+    if (emptyNote) {
+      emptyNote.remove();
+      emptyNote = null;
+    }
+    if (!rows.length) {
+      emptyNote = el(
+        'div',
+        'plsi-empty',
+        state.view === 'recent'
+          ? 'No apps yet. Open an app’s page and it lands here.'
+          : 'No app cards found on this page.'
+      );
+      panelBody.parentElement.parentElement.appendChild(emptyNote);
+    }
+
+    for (const app of rows) {
+      const tr = el('tr', 'plsi-row' + (app.self ? ' plsi-row-self' : ''));
       tr.addEventListener('click', () => {
         location.href = 'https://play.google.com/store/apps/details?id=' + app.id;
       });
@@ -447,9 +584,16 @@
       } else {
         cell.appendChild(el('div', 'plsi-row-icon plsi-row-noicon', '?'));
       }
+      const label = el('div', 'plsi-row-label');
       const name = el('span', 'plsi-row-name', app.name || app.id);
       name.title = app.name || app.id;
-      cell.appendChild(name);
+      label.appendChild(name);
+      if (app.self) {
+        label.appendChild(el('span', 'plsi-row-sub', 'this app'));
+      } else if (app.seenAt) {
+        label.appendChild(el('span', 'plsi-row-sub', ago(app.seenAt)));
+      }
+      cell.appendChild(label);
       tdApp.appendChild(cell);
       tr.appendChild(tdApp);
 
@@ -534,6 +678,8 @@
     app.info = info;
     app.status = 'ok';
     if (info.name) app.name = info.name;
+    if (!app.icon && info.icon) app.icon = info.icon;
+    if (app.self) rememberRecent(app);
     if (app.badge) renderBadge(app.badge, info);
     if (app.inline) renderInline(app.inline, info);
     schedulePanelRender();
@@ -553,6 +699,38 @@
     return t ? t.split('\n')[0].slice(0, 80) : null;
   }
 
+  // Grid cards wrap the icon tightly, but list rows (the "Similar apps" rails on
+  // a detail page) put the icon in a wide row container — pinning the badge to
+  // the container's edges would stretch it across the title and rating. Measure
+  // the icon instead and inset the badge to its box.
+  function fitBadgeToIcon(badge, img, holder) {
+    const ib = img.getBoundingClientRect();
+    const hb = holder.getBoundingClientRect();
+    if (!ib.width || !hb.width) return;
+    badge.style.left = Math.max(0, Math.round(ib.left - hb.left)) + 'px';
+    badge.style.right = Math.max(0, Math.round(hb.right - ib.right)) + 'px';
+    badge.style.bottom = Math.max(0, Math.round(hb.bottom - ib.bottom)) + 'px';
+
+    const tight = ib.width < 96;
+    if (tight !== badge.classList.contains('plsi-badge-sm')) {
+      badge.classList.toggle('plsi-badge-sm', tight);
+      if (badge.plsiInfo) renderBadge(badge, badge.plsiInfo);
+    }
+  }
+
+  // Both boxes are watched: the icon settles late (lazy load) and the row around
+  // it reflows as the rail lays out, and either one moves the badge.
+  const fitted = new Map(); // icon or row element -> {badge, img, holder}
+  const fitObserver =
+    typeof ResizeObserver === 'function'
+      ? new ResizeObserver((entries) => {
+          for (const e of entries) {
+            const t = fitted.get(e.target);
+            if (t) fitBadgeToIcon(t.badge, t.img, t.holder);
+          }
+        })
+      : null;
+
   function attachBadge(app, img) {
     const holder = img.parentElement;
     if (!holder) return;
@@ -568,21 +746,52 @@
       ev.preventDefault();
       ev.stopPropagation();
     });
+    const place = () => {
+      holder.appendChild(badge);
+      fitBadgeToIcon(badge, img, holder);
+      const target = { badge, img, holder };
+      for (const box of [img, holder]) {
+        fitted.set(box, target);
+        fitObserver?.observe(box);
+      }
+    };
     // Lazy icons have no box yet — attaching now would leave the badge
     // floating; wait for the image to load first.
     if (img.complete && img.naturalWidth > 0) {
-      holder.appendChild(badge);
+      place();
     } else {
-      img.addEventListener('load', () => holder.appendChild(badge), { once: true });
+      img.addEventListener('load', place, { once: true });
     }
     app.badge = badge;
     if (app.status === 'ok' && app.info) renderBadge(badge, app.info);
+  }
+
+  // On a detail page, the app being viewed gets no badge — its numbers are
+  // already on the page — but it belongs in the table, pinned above the
+  // "Similar apps" and "More by …" rails it is meant to be compared against.
+  function addSelfApp(id) {
+    if (state.apps.has(id)) return;
+    const h1 = document.querySelector('h1');
+    state.apps.set(id, {
+      id,
+      name: (h1?.textContent || '').trim() || null,
+      icon: document.querySelector('meta[property="og:image"]')?.content || null,
+      order: -1, // ahead of everything scanned from the page
+      self: true,
+      status: 'loading',
+      info: null,
+      badge: null,
+      inline: null,
+    });
+    enqueue(id);
+    schedulePanelRender();
   }
 
   function scan() {
     // Skip the app's own card on a detail page — the info is already there.
     const onDetailPage = location.pathname === '/store/apps/details';
     const selfId = onDetailPage ? new URLSearchParams(location.search).get('id') : null;
+    if (selfId) addSelfApp(selfId);
 
     const anchors = document.querySelectorAll('a[href*="/store/apps/details?id="]');
     for (const a of anchors) {
@@ -634,6 +843,8 @@
         seenIds.clear();
         state.apps.clear();
         state.order = 0;
+        fitted.clear();
+        fitObserver?.disconnect();
         schedulePanelRender();
       }
       scan();
@@ -643,7 +854,7 @@
   // ---------- boot ----------
 
   (async () => {
-    await loadFlags();
+    await Promise.all([loadFlags(), loadRecent()]);
     watchFlags();
     applyFlags();
     observer.observe(document.documentElement, { childList: true, subtree: true });

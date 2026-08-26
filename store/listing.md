@@ -1,7 +1,7 @@
 # Chrome Web Store — submission package
 
 Everything to copy-paste into the [CWS Developer Dashboard](https://chrome.google.com/webstore/devconsole).
-Upload file: `dist/playlens-v1.5.1.zip` (run `./build.sh`).
+Upload file: `dist/playlens-v1.6.0.zip` (run `./build.sh`).
 
 Every field below was written against the [listing requirements](https://developer.chrome.com/docs/webstore/program-policies/listing-requirements)
 and the [Google branding guidelines](https://developer.chrome.com/docs/webstore/branding) — see
@@ -34,10 +34,16 @@ THREE VIEWS — TURN ON WHAT YOU LIKE
 • Inline info line — an extra line right under each card's own rating, styled to match the page.
 • Sortable side panel — a table of everything scanned so far. Sort by installs, rating, reviews or update date, click a row to open it, and copy the whole table as CSV for a spreadsheet.
 
+ALSO ON A SINGLE APP'S PAGE
+The "Similar apps" and "More by this developer" rails feed the same table, with the one you are reading pinned at the top — so you can compare it against its neighbours without leaving the page.
+
+RECENT LIST
+The panel's Recent tab keeps the last 60 titles whose page you opened, newest first, together with their numbers. It lives on your device, survives a browser restart, and can be cleared or switched off at any time.
+
 Each view toggles independently from the toolbar popup or the full settings page, and changes apply instantly with no page reload.
 
 PRIVATE BY DESIGN
-No account. No analytics. No external servers. PlayLens runs only on play.google.com and reads the same public pages you could open yourself. Results are cached on your device for 12 hours and nothing ever leaves your browser.
+No account. No analytics. No external servers. It runs only on play.google.com and reads the same public pages you could open yourself. Results are cached on your device for 12 hours and nothing ever leaves your browser.
 
 FREE AND OPEN SOURCE
 MIT licensed. Source code, issue tracker and releases:
@@ -60,7 +66,7 @@ PlayLens is an independent project. It is not affiliated with, endorsed by, or s
 - **Single purpose description:**
   Displays public app statistics (download count, review count, last-updated date) on Google Play list pages.
 - **Permission justifications:**
-  - `storage` — saves the user's display settings (feature flags) and a 12-hour local cache of public app stats so list pages load faster.
+  - `storage` — saves the user's display settings (feature flags), the list of recently opened apps shown in the panel's Recent tab, and a 12-hour local cache of public app stats so list pages load faster. All of it stays in the browser.
   - `clipboardWrite` — used only when the user clicks the CSV button to copy the visible app list to the clipboard.
   - Host `play.google.com` (content script) — the extension's single purpose is to annotate Google Play list pages; it reads list pages and fetches public app detail pages on the same site. It never runs anywhere else.
 - **Remote code:** No, all code is packaged in the extension.
@@ -111,7 +117,9 @@ Occurrence counts in the description above — the limit is 5:
 | download / downloads | 2 |
 | review / reviews | 2 |
 | rating | 3 |
-| app / apps | 4 |
+| app / apps | 5 |
+| panel | 2 |
+| recent | 2 |
 
 Every keyword describes something the extension actually does — no unrelated terms
 (no "free VPN", "downloader", competitor names) are present.
@@ -127,7 +135,7 @@ Every keyword describes something the extension actually does — no unrelated t
 ## Submit checklist (owner actions)
 
 1. Register a developer account at https://chrome.google.com/webstore/devconsole ($5 one-time fee).
-2. New item → upload `dist/playlens-v1.5.1.zip`.
+2. New item → upload `dist/playlens-v1.6.0.zip`.
 3. Fill Store listing + Privacy + Distribution tabs from this file.
 4. Submit for review. Typical review time: a few hours to a few days; first submissions with host permissions can take longer.
 5. After approval, add the CWS link to README + landing page CTA.

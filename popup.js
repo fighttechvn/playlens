@@ -1,4 +1,4 @@
-const DEFAULTS = { overlay: true, inline: true, panel: true, panelOpen: false };
+const DEFAULTS = { overlay: true, inline: true, panel: true, panelOpen: false, recent: true };
 
 const boxes = {};
 for (const key of Object.keys(DEFAULTS)) {

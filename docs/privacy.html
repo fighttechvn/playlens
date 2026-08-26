@@ -47,6 +47,7 @@
     <h2>Data stored on your device</h2>
     <ul>
       <li><strong>Settings</strong> (feature-flag toggles) are stored in <code>chrome.storage.sync</code> so they follow your Chrome profile.</li>
+      <li><strong>A list of apps you opened</strong> (package name, app name, icon URL and the public numbers above) is stored in <code>chrome.storage.local</code> to fill the panel's Recent tab — at most 60 entries, on this device only, never transmitted. Clear it from the panel or the settings page, or switch the feature off entirely.</li>
       <li><strong>A cache of public app data</strong> (downloads / reviews / update date per app) is stored in <code>chrome.storage.local</code> for up to 12 hours, so pages load faster. You can clear it anytime from the extension's settings page.</li>
     </ul>
     <p>Neither store contains any personal information, browsing history, or identifiers.</p>
@@ -56,7 +57,7 @@
 
     <h2>Permissions explained</h2>
     <ul>
-      <li><code>storage</code> — save your settings and the 12-hour cache described above.</li>
+      <li><code>storage</code> — save your settings, the recent-apps list and the 12-hour cache described above.</li>
       <li><code>clipboardWrite</code> — used only when you click the <strong>CSV</strong> button, to copy the app list to your clipboard.</li>
       <li>Access to <code>play.google.com</code> — required to read list pages and fetch public app detail pages. The extension never runs on any other site.</li>
     </ul>

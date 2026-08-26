@@ -22,6 +22,13 @@
   pointer-events: none; /* let hover/click fall through to the card */
 }
 
+/* list-row icons (detail-page rails) are ~64px — tighten so nothing clips */
+.plsi-badge-sm {
+  padding: 2px 4px 3px;
+  font-size: 9px;
+  line-height: 1.25;
+}
+
 .plsi-badge span {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -182,9 +189,53 @@
   background: rgba(0, 0, 0, 0.06);
 }
 
+.plsi-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.plsi-tab {
+  padding: 4px 10px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: #5f6368;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.plsi-tab:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.plsi-tab-active {
+  background: rgba(11, 87, 208, 0.12);
+  color: #0b57d0;
+  font-weight: 600;
+}
+
+.plsi-clear {
+  margin-left: auto;
+}
+
+.plsi-btn.plsi-hidden {
+  display: none;
+}
+
 .plsi-panel-list {
   flex: 1;
   overflow-y: auto;
+}
+
+.plsi-empty {
+  padding: 24px 16px;
+  color: #9aa0a6;
+  font-size: 12px;
+  text-align: center;
 }
 
 .plsi-table {
@@ -278,11 +329,33 @@ th.plsi-col-upd {
   font-size: 11px;
 }
 
+.plsi-row-label {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
 .plsi-row-name {
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.plsi-row-sub {
+  color: #9aa0a6;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+/* the app whose page you are on, pinned above the rails it is compared with */
+.plsi-row-self td {
+  background: rgba(11, 87, 208, 0.06);
+}
+
+.plsi-row-self .plsi-row-sub {
+  color: #0b57d0;
 }
 
 .plsi-row-muted {
@@ -335,6 +408,31 @@ td.plsi-stale {
 
   .plsi-panel-count {
     background: rgba(255, 255, 255, 0.12);
+  }
+
+  .plsi-tabs {
+    border-bottom-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .plsi-tab {
+    color: #9aa0a6;
+  }
+
+  .plsi-tab:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .plsi-tab-active {
+    background: rgba(168, 199, 250, 0.16);
+    color: #a8c7fa;
+  }
+
+  .plsi-row-self td {
+    background: rgba(168, 199, 250, 0.1);
+  }
+
+  .plsi-row-self .plsi-row-sub {
+    color: #a8c7fa;
   }
 
   .plsi-btn {

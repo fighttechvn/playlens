@@ -14,6 +14,11 @@ Three display modes, each toggleable independently via feature flags:
 2. **Inline under the rating** — a small line (`⬇100M+ · 824.1K rv` + `⟳ update date`, color-coded) inserted right below each card's own rating.
 3. **Side panel** — a fixed panel on the right rendered as a **table**: App (icon + name) · ⬇ downloads · ★ rating · Rv reviews · Updated (`d/M/yy`, freshness-colored). **Click a column header to sort** (click again to reverse, ▲/▼ indicator); click a row to open the app. A **CSV** button copies the whole list to the clipboard. Toggle with the floating 📊 button on the right edge; the open state is remembered.
 
+The panel has two tabs:
+
+- **This page** — every app card found on the page you are on. On an app's own page that means the *Similar apps* and *More by …* rails, with the app you are looking at pinned to the top of the table so you can compare it against them.
+- **Recent** — apps whose detail page you opened, newest first (up to 60), each with the time since you saw it. The list is stored on your own device and survives restarts; **Clear** empties it, and the whole feature can be switched off.
+
 ## Install
 
 1. [Download `playlens.zip`](https://github.com/fighttechvn/playlens/releases/latest/download/playlens.zip) and unzip it (or clone this repo).
@@ -58,6 +63,7 @@ Setup for either path (OAuth client, refresh token, item ID) is in [store/api-pu
 | `inline` | on | Info line under each card's own rating |
 | `panel` | on | Right-side list panel (with the 📊 button) |
 | `panelOpen` | off | Auto-open the panel on page load |
+| `recent` | on | Remember apps whose detail page you open, in the panel's Recent tab |
 
 Flags live in `chrome.storage.sync` and apply **instantly** (the content script listens to `storage.onChanged` — no page reload).
 
@@ -70,6 +76,8 @@ Besides the quick popup there is a **full settings page** (`options.html`): righ
   - **Downloads** — regex around the `Downloads` label (e.g. `1M+`)
   - **Updated on** — the update date, color-coded by freshness: green ≤ 6 months, amber ≤ 18 months, red older
 - Badges wait for lazy-loaded icons to finish loading before attaching (avoids floating badges on zero-height images); corner radius is copied from the icon.
+- Opening an app's detail page adds it to the **Recent** list in `chrome.storage.local` (60 entries, newest first, deduplicated by package). It never leaves the browser; clear it from the panel or the options page.
+- Overlay badges are measured against the icon box, not its container, so they stay on the icon in list rows (detail-page rails) as well as grid cards; on icons under 96px the strip drops the review count and shortens the date instead of clipping.
 - 12h cache in `chrome.storage.local`, at most 3 detail fetches in parallel. Play is an SPA → a MutationObserver re-scans on scroll/navigation; changing pages resets the panel list.
 - play.google.com enforces a **Trusted Types** CSP (blocks `innerHTML` even for content scripts) → all UI is built with `createElement`/`textContent`.
 

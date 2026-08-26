@@ -14,6 +14,11 @@ Ba chế độ hiển thị, bật/tắt độc lập bằng feature flag:
 2. **Inline dưới rating** — dòng nhỏ (`⬇100M+ · 824.1K rv` + `⟳ ngày update` tô màu) chèn ngay dưới dòng rating sẵn có của card.
 3. **Panel bên phải** — panel cố định dạng **bảng**: App (icon + tên) · ⬇ tải · ★ rating · Rv review · Updated (`d/M/yy`, tô màu độ tươi). **Click tiêu đề cột để sort** (click lại để đảo chiều, có ▲/▼); click dòng để mở app. Nút **CSV** copy toàn bộ danh sách vào clipboard. Bật/tắt bằng nút 📊 nổi ở mép phải; trạng thái mở được ghi nhớ.
 
+Panel có hai tab:
+
+- **This page** — mọi app card tìm thấy trên trang đang mở. Ở trang chi tiết một app thì đó là các rail *Similar apps* và *More by …*, kèm chính app đang xem được ghim lên đầu bảng để so sánh trực tiếp.
+- **Recent** — các app bạn đã mở trang chi tiết, mới nhất trước (tối đa 60), kèm thời gian đã xem. Danh sách lưu ngay trên máy bạn và không mất khi tắt trình duyệt; nút **Clear** xóa sạch, và có thể tắt hẳn tính năng này.
+
 ## Cài đặt
 
 1. [Tải `playlens.zip`](https://github.com/fighttechvn/playlens/releases/latest/download/playlens.zip) và giải nén (hoặc clone repo này).
@@ -58,10 +63,11 @@ Cách cài đặt cho cả hai đường (OAuth client, refresh token, item ID) 
 | `inline` | bật | Dòng thông tin dưới rating sẵn có của card |
 | `panel` | bật | Panel danh sách bên phải (kèm nút 📊) |
 | `panelOpen` | tắt | Tự mở panel khi vào trang |
+| `recent` | bật | Nhớ app đã mở trang chi tiết, hiện ở tab Recent của panel |
 
 Flag lưu trong `chrome.storage.sync` và áp dụng **ngay lập tức** (content script lắng nghe `storage.onChanged` — không cần reload trang).
 
-Ngoài popup nhanh còn có **trang cài đặt đầy đủ** (`options.html`): chuột phải icon extension → *Options*, hoặc bấm "⚙ Mở trang cài đặt đầy đủ" trong popup — công tắc từng flag kèm mô tả chi tiết, cùng nút **Xóa cache dữ liệu app**.
+Ngoài popup nhanh còn có **trang cài đặt đầy đủ** (`options.html`): chuột phải icon extension → *Options*, hoặc bấm "⚙ Mở trang cài đặt đầy đủ" trong popup — công tắc từng flag kèm mô tả chi tiết, cùng nút **Xóa cache dữ liệu app** và **Xóa danh sách Recent**.
 
 ## Cách hoạt động
 
@@ -70,6 +76,8 @@ Ngoài popup nhanh còn có **trang cài đặt đầy đủ** (`options.html`):
   - **Lượt tải** — regex quanh label `Downloads` (vd `1M+`)
   - **Updated on** — ngày update, tô màu theo độ tươi: xanh ≤ 6 tháng, cam ≤ 18 tháng, đỏ nếu cũ hơn
 - Badge chờ icon lazy-load tải xong mới gắn (tránh badge trôi trên ảnh cao 0px); bo góc copy theo icon.
+- Mở trang chi tiết một app sẽ ghi app đó vào danh sách **Recent** trong `chrome.storage.local` (60 mục, mới nhất trước, không trùng package). Dữ liệu không rời khỏi trình duyệt; xóa từ panel hoặc trang cài đặt.
+- Badge overlay được đo theo khung icon chứ không theo khung cha, nên vẫn nằm gọn trên icon ở cả dòng danh sách (rail của trang chi tiết) lẫn card dạng lưới; icon nhỏ hơn 96px thì bỏ số review và rút gọn ngày thay vì bị cắt chữ.
 - Cache 12h trong `chrome.storage.local`, tối đa 3 fetch song song. Play là SPA → MutationObserver quét lại khi scroll/điều hướng; đổi trang sẽ reset danh sách panel.
 - play.google.com áp CSP **Trusted Types** (cấm `innerHTML` kể cả với content script) → toàn bộ UI dựng bằng `createElement`/`textContent`.
 
