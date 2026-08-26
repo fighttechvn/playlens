@@ -1,6 +1,6 @@
 # PlayLens
 
-**PlayLens – Play Store Downloads, Reviews & Update Dates**
+**PlayLens – App Stats for Google Play**
 
 English | [Tiếng Việt](README.vi.md) · [Landing page](https://fighttechvn.github.io/playlens/)
 
@@ -66,3 +66,7 @@ Besides the quick popup there is a **full settings page** (`options.html`): righ
 ## License
 
 [MIT](LICENSE) © [FightTech VN](https://github.com/fighttechvn)
+
+---
+
+PlayLens is an independent project, not affiliated with, endorsed by or sponsored by Google. Google Play is a trademark of Google LLC.

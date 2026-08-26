@@ -3,12 +3,56 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>PlayLens — Play Store Downloads, Reviews &amp; Update Dates</title>
-  <meta name="description" content="Free open-source Chrome extension that shows download counts, review counts and last-updated dates for every app directly on Google Play list pages — no more opening apps one by one." />
-  <meta property="og:title" content="PlayLens — Play Store Downloads, Reviews & Update Dates" />
-  <meta property="og:description" content="See installs, reviews and update dates for every app right on Google Play list pages. Free & open source." />
+  <title>PlayLens — App Stats for Google Play</title>
+  <meta name="description" content="Free Chrome extension showing download counts, exact review counts and last-updated dates on every app card in Google Play search, developer and collection lists." />
+  <link rel="canonical" href="https://fighttechvn.github.io/playlens/" />
+  <meta name="author" content="FightTech VN" />
+
+  <meta property="og:title" content="PlayLens — App Stats for Google Play" />
+  <meta property="og:description" content="See downloads, exact review counts and last-updated dates for every app right on Google Play list pages. Free, open source, no tracking." />
   <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://fighttechvn.github.io/playlens/" />
+  <meta property="og:image" content="https://fighttechvn.github.io/playlens/assets/demo.png" />
+  <meta property="og:image:alt" content="Google Play search results with download counts, review counts and update dates on every app card, plus a sortable side panel" />
+  <meta property="og:site_name" content="PlayLens" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="PlayLens — App Stats for Google Play" />
+  <meta name="twitter:description" content="Downloads, exact review counts and update dates on every Google Play app card. Free Chrome extension." />
+  <meta name="twitter:image" content="https://fighttechvn.github.io/playlens/assets/demo.png" />
+
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔎</text></svg>" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "PlayLens",
+    "alternateName": "PlayLens – App Stats for Google Play",
+    "applicationCategory": "BrowserApplication",
+    "applicationSubCategory": "Chrome Extension",
+    "operatingSystem": "Chrome, Edge, Brave, any Chromium browser",
+    "description": "Chrome extension that shows download counts, exact review counts and last-updated dates for every app card on Google Play list pages, with a sortable side panel and CSV export.",
+    "url": "https://fighttechvn.github.io/playlens/",
+    "downloadUrl": "https://github.com/fighttechvn/playlens/releases/latest/download/playlens.zip",
+    "screenshot": "https://fighttechvn.github.io/playlens/assets/demo.png",
+    "softwareVersion": "1.5.1",
+    "license": "https://opensource.org/licenses/MIT",
+    "isAccessibleForFree": true,
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "author": {
+      "@type": "Organization",
+      "name": "FightTech VN",
+      "url": "https://github.com/fighttechvn"
+    },
+    "featureList": [
+      "Download count on every Google Play app card",
+      "Exact review counts parsed from each app's detail page",
+      "Last-updated date, colour-coded by freshness",
+      "Sortable side panel with CSV export",
+      "Works on developer pages, search results and collections",
+      "No account, no analytics, no external servers"
+    ]
+  }
+  </script>
   <style>
     :root {
       --bg: #ffffff;
@@ -126,6 +170,22 @@
       font-size: 0.9em;
     }
 
+    .faq { display: grid; gap: 8px; }
+    .faq details {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 16px;
+    }
+    .faq summary {
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14.5px;
+      list-style-position: outside;
+    }
+    .faq summary::marker { color: var(--accent); }
+    .faq p { margin: 8px 0 2px; font-size: 13.5px; color: var(--muted); }
+
     footer {
       margin-top: 64px;
       padding: 26px 0 40px;
@@ -133,6 +193,13 @@
       text-align: center;
       font-size: 13px;
       color: var(--muted);
+    }
+    footer .tm {
+      display: inline-block;
+      margin-top: 12px;
+      max-width: 560px;
+      font-size: 11.5px;
+      opacity: 0.8;
     }
   </style>
 </head>
@@ -207,14 +274,84 @@
     </ol>
   </section>
 
+  <section class="wrap">
+    <h2>Questions</h2>
+    <div class="faq">
+      <details>
+        <summary>How do I see the download count of an app without opening it?</summary>
+        <p>Install PlayLens and open any Google&nbsp;Play list page. The download count, rating, review count and last-updated date appear on each app card directly — no clicking through.</p>
+      </details>
+      <details>
+        <summary>Which Google Play pages does it work on?</summary>
+        <p>Any page that shows a grid or row of app cards: developer pages, search results, category and collection pages, "Similar apps", and the Play home page.</p>
+      </details>
+      <details>
+        <summary>Are the review counts exact?</summary>
+        <p>Yes. Play's own cards round to something like "824K". PlayLens reads the structured data on each app's detail page, so you get 824.1K — the real figure, useful when you are comparing two apps that both round to the same number.</p>
+      </details>
+      <details>
+        <summary>Can I export the list to a spreadsheet?</summary>
+        <p>Yes. Open the side panel and click <strong>CSV</strong> — the whole scanned list is copied to your clipboard, ready to paste into Sheets or Excel.</p>
+      </details>
+      <details>
+        <summary>Does it collect or send my data anywhere?</summary>
+        <p>No. There is no account, no analytics and no server of ours. PlayLens runs only on play.google.com, fetches the same public pages you could open yourself, and caches results on your device for 12 hours. See the <a href="privacy.html">privacy policy</a>.</p>
+      </details>
+      <details>
+        <summary>Does it work in Edge, Brave or Opera?</summary>
+        <p>Yes — it is a standard Manifest V3 extension, so any Chromium-based browser can load it.</p>
+      </details>
+    </div>
+  </section>
+
   <footer>
     <div class="wrap">
       PlayLens is open source under the MIT license ·
       <a href="https://github.com/fighttechvn/playlens">Source code</a> ·
       <a href="https://github.com/fighttechvn/playlens/issues">Report an issue</a> ·
       <a href="privacy.html">Privacy policy</a><br />
-      Made by <a href="https://github.com/fighttechvn">FightTech VN</a>
+      Made by <a href="https://github.com/fighttechvn">FightTech VN</a><br />
+      <span class="tm">PlayLens is an independent project, not affiliated with, endorsed by or sponsored by Google. Google Play is a trademark of Google&nbsp;LLC.</span>
     </div>
   </footer>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How do I see the download count of an app without opening it?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Install PlayLens and open any Google Play list page. The download count, rating, review count and last-updated date appear on each app card directly — no clicking through." }
+      },
+      {
+        "@type": "Question",
+        "name": "Which Google Play pages does it work on?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Any page that shows a grid or row of app cards: developer pages, search results, category and collection pages, Similar apps, and the Play home page." }
+      },
+      {
+        "@type": "Question",
+        "name": "Are the review counts exact?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. Play's own cards round to something like 824K. PlayLens reads the structured data on each app's detail page, so you get 824.1K — the real figure, useful when comparing two apps that both round to the same number." }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I export the list to a spreadsheet?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. Open the side panel and click CSV — the whole scanned list is copied to your clipboard, ready to paste into Sheets or Excel." }
+      },
+      {
+        "@type": "Question",
+        "name": "Does it collect or send my data anywhere?",
+        "acceptedAnswer": { "@type": "Answer", "text": "No. There is no account, no analytics and no server of ours. PlayLens runs only on play.google.com, fetches the same public pages you could open yourself, and caches results on your device for 12 hours." }
+      },
+      {
+        "@type": "Question",
+        "name": "Does it work in Edge, Brave or Opera?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes — it is a standard Manifest V3 extension, so any Chromium-based browser can load it." }
+      }
+    ]
+  }
+  </script>
 </body>
 </html>
