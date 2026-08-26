@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Privacy Policy — PlayLens</title>
+  <meta name="description" content="Privacy policy for the PlayLens Chrome extension. No data collection, no tracking, everything stays in your browser." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔎</text></svg>" />
+  <style>
+    :root {
+      --bg: #ffffff; --fg: #1f1f1f; --muted: #5f6368;
+      --border: rgba(0, 0, 0, 0.1); --accent: #0b57d0;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #131314; --fg: #e3e3e3; --muted: #9aa0a6;
+        --border: rgba(255, 255, 255, 0.12); --accent: #a8c7fa;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--fg);
+      font-family: 'Google Sans Text', Roboto, 'Segoe UI', Arial, sans-serif;
+      line-height: 1.65;
+    }
+    a { color: var(--accent); }
+    .wrap { max-width: 720px; margin: 0 auto; padding: 56px 24px 64px; }
+    h1 { font-size: 30px; margin: 0 0 4px; letter-spacing: -0.01em; }
+    .sub { color: var(--muted); margin: 0 0 32px; font-size: 14px; }
+    h2 { font-size: 19px; margin: 30px 0 8px; }
+    p, li { font-size: 15px; }
+    footer { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 13px; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>PlayLens — Privacy Policy</h1>
+    <p class="sub">Last updated: August 26, 2026</p>
+
+    <p><strong>Short version: PlayLens collects nothing. There are no servers, no accounts, no analytics, no tracking. Everything happens inside your browser.</strong></p>
+
+    <h2>What the extension does</h2>
+    <p>PlayLens runs only on <code>play.google.com</code> pages. To display download counts, review counts and last-updated dates, it fetches each app's public Google Play detail page directly from <code>play.google.com</code> — the same pages you could open yourself. These requests go straight from your browser to Google; they never pass through any server operated by us.</p>
+
+    <h2>Data stored on your device</h2>
+    <ul>
+      <li><strong>Settings</strong> (feature-flag toggles) are stored in <code>chrome.storage.sync</code> so they follow your Chrome profile.</li>
+      <li><strong>A cache of public app data</strong> (downloads / reviews / update date per app) is stored in <code>chrome.storage.local</code> for up to 12 hours, so pages load faster. You can clear it anytime from the extension's settings page.</li>
+    </ul>
+    <p>Neither store contains any personal information, browsing history, or identifiers.</p>
+
+    <h2>Data collected or shared</h2>
+    <p>None. PlayLens does not collect, transmit, sell, or share any user data with anyone. It contains no analytics, telemetry, ads, or third-party code.</p>
+
+    <h2>Permissions explained</h2>
+    <ul>
+      <li><code>storage</code> — save your settings and the 12-hour cache described above.</li>
+      <li><code>clipboardWrite</code> — used only when you click the <strong>CSV</strong> button, to copy the app list to your clipboard.</li>
+      <li>Access to <code>play.google.com</code> — required to read list pages and fetch public app detail pages. The extension never runs on any other site.</li>
+    </ul>
+
+    <h2>Changes</h2>
+    <p>If this policy ever changes, the update will be published at this address and noted in the project's release notes.</p>
+
+    <h2>Contact</h2>
+    <p>PlayLens is open source. Questions or concerns: open an issue at <a href="https://github.com/fighttechvn/playlens/issues">github.com/fighttechvn/playlens/issues</a>.</p>
+
+    <footer>
+      <a href="./">← PlayLens home</a> · <a href="https://github.com/fighttechvn/playlens">Source code</a> · MIT License · FightTech VN
+    </footer>
+  </div>
+</body>
+</html>
