@@ -88,51 +88,16 @@
     .btn-ghost:hover { background: var(--card); }
     .note { margin-top: 10px; font-size: 12.5px; color: var(--muted); }
 
-    /* fake play card demo */
-    .demo {
-      margin: 44px auto 0;
-      display: flex;
-      gap: 28px;
-      justify-content: center;
-      flex-wrap: wrap;
+    /* real screenshot demo */
+    .shot { margin: 48px auto 0; }
+    .shot img {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.22);
     }
-    .pcard { width: 168px; text-align: left; }
-    .picon {
-      position: relative;
-      width: 168px;
-      height: 168px;
-      border-radius: 24px;
-      background: linear-gradient(135deg, #4285f4, #a142f4);
-      overflow: hidden;
-    }
-    .picon.g2 { background: linear-gradient(135deg, #34a853, #4285f4); }
-    .picon::after {
-      content: '▶';
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 52px;
-      color: rgba(255, 255, 255, 0.9);
-    }
-    .overlay {
-      position: absolute;
-      left: 0; right: 0; bottom: 0;
-      z-index: 1;
-      padding: 4px 8px 5px;
-      background: rgba(15, 15, 15, 0.72);
-      color: #fff;
-      font-size: 11px;
-      line-height: 1.35;
-    }
-    .overlay .fresh { color: #6dd58c; }
-    .overlay .aging { color: #fcc934; }
-    .pname { margin-top: 8px; font-size: 14px; }
-    .prate { font-size: 13px; color: var(--muted); }
-    .pinline { font-size: 11.5px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
-    .pinline .fresh { color: var(--fresh); }
-    .pinline .aging { color: var(--aging); }
 
     section { padding: 44px 0 0; }
     h2 { font-size: 24px; margin: 0 0 18px; letter-spacing: -0.01em; }
@@ -187,23 +152,12 @@
     </div>
     <p class="note">MIT licensed · no tracking · all data stays in your browser</p>
 
-    <div class="demo" aria-hidden="true">
-      <div class="pcard">
-        <div class="picon">
-          <div class="overlay">⬇100M+ · 4.5★ 824.1K<br /><span class="aging">⟳ Sep 27, 2025</span></div>
-        </div>
-        <div class="pname">Auto Clicker – Automatic tap</div>
-        <div class="prate">4.4 ★</div>
-        <div class="pinline">⬇100M+ · 824.1K rv<br /><span class="aging">⟳ Sep 27, 2025</span></div>
-      </div>
-      <div class="pcard">
-        <div class="picon g2">
-          <div class="overlay">⬇10M+ · 4.4★ 93.9K<br /><span class="fresh">⟳ Aug 15, 2026</span></div>
-        </div>
-        <div class="pname">MacroDroid – Device Automation</div>
-        <div class="prate">4.3 ★</div>
-        <div class="pinline">⬇10M+ · 93.9K rv<br /><span class="fresh">⟳ Aug 15, 2026</span></div>
-      </div>
+    <div class="shot">
+      <img
+        src="assets/demo.png"
+        alt="PlayLens on a Google Play search results page: download/review badges on every app card, info lines under each rating, and the sortable side panel listing 30 apps"
+        loading="lazy"
+      />
     </div>
   </header>
 

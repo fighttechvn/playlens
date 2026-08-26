@@ -1,0 +1,68 @@
+# PlayLens
+
+**PlayLens – Play Store Downloads, Reviews & Update Dates**
+
+[English](README.md) | Tiếng Việt · [Trang giới thiệu](https://fighttechvn.github.io/playlens/)
+
+Chrome extension hiển thị **⬇ lượt tải · rating★ + số review · ⟳ ngày update gần nhất** cho mọi app trên các trang danh sách Google Play (trang developer, collection/cluster, tìm kiếm, trang chủ) — không cần mở từng app.
+
+![PlayLens trên trang kết quả tìm kiếm Google Play](docs/assets/demo.png)
+
+Ba chế độ hiển thị, bật/tắt độc lập bằng feature flag:
+
+1. **Badge đè trên icon** — dải thông tin gọn ở đáy icon mỗi app (không làm vỡ layout).
+2. **Inline dưới rating** — dòng nhỏ (`⬇100M+ · 824.1K rv` + `⟳ ngày update` tô màu) chèn ngay dưới dòng rating sẵn có của card.
+3. **Panel bên phải** — panel cố định dạng **bảng**: App (icon + tên) · ⬇ tải · ★ rating · Rv review · Updated (`d/M/yy`, tô màu độ tươi). **Click tiêu đề cột để sort** (click lại để đảo chiều, có ▲/▼); click dòng để mở app. Nút **CSV** copy toàn bộ danh sách vào clipboard. Bật/tắt bằng nút 📊 nổi ở mép phải; trạng thái mở được ghi nhớ.
+
+## Cài đặt
+
+1. [Tải `playlens.zip`](https://github.com/fighttechvn/playlens/releases/latest/download/playlens.zip) và giải nén (hoặc clone repo này).
+2. Mở `chrome://extensions`, bật **Developer mode**.
+3. Bấm **Load unpacked**, chọn thư mục vừa giải nén.
+4. Mở trang danh sách bất kỳ trên Google Play. Click icon extension trên toolbar để chỉnh flag.
+
+## Đóng gói
+
+```bash
+./build.sh
+```
+
+Tạo `dist/playlens-v<version>.zip` (version đọc từ `manifest.json`, chỉ gồm file runtime, không có `.DS_Store`) — sẵn sàng upload Chrome Web Store hoặc chia sẻ. CI chạy đúng lệnh build này khi merge `develop` vào `uat` (xem `.github/workflows/build.yml`).
+
+## Nhánh & CI
+
+- `main` — release (landing page trong `docs/` publish qua GitHub Pages)
+- `develop` — phát triển hằng ngày
+- `uat` — merge từ `develop` để test; mỗi push/merge vào `uat` sẽ kích hoạt GitHub Actions chạy `build.sh` và đính kèm file zip làm artifact của run.
+
+## Feature flags (popup / trang cài đặt)
+
+| Flag | Mặc định | Ý nghĩa |
+|---|---|---|
+| `overlay` | bật | Badge đè trên icon mỗi app |
+| `inline` | bật | Dòng thông tin dưới rating sẵn có của card |
+| `panel` | bật | Panel danh sách bên phải (kèm nút 📊) |
+| `panelOpen` | tắt | Tự mở panel khi vào trang |
+
+Flag lưu trong `chrome.storage.sync` và áp dụng **ngay lập tức** (content script lắng nghe `storage.onChanged` — không cần reload trang).
+
+Ngoài popup nhanh còn có **trang cài đặt đầy đủ** (`options.html`): chuột phải icon extension → *Options*, hoặc bấm "⚙ Mở trang cài đặt đầy đủ" trong popup — công tắc từng flag kèm mô tả chi tiết, cùng nút **Xóa cache dữ liệu app**.
+
+## Cách hoạt động
+
+- Content script quét mọi thẻ `details?id=...` có chứa ảnh (app card). Với mỗi app, extension fetch trang chi tiết với `hl=en&gl=US` (label ổn định để parse) và trích:
+  - **Tên app + rating + số review** — parse từ JSON-LD (`SoftwareApplication`): tên chuẩn và số review **chính xác** (vd 53,623 → `53.6K rv`)
+  - **Lượt tải** — regex quanh label `Downloads` (vd `1M+`)
+  - **Updated on** — ngày update, tô màu theo độ tươi: xanh ≤ 6 tháng, cam ≤ 18 tháng, đỏ nếu cũ hơn
+- Badge chờ icon lazy-load tải xong mới gắn (tránh badge trôi trên ảnh cao 0px); bo góc copy theo icon.
+- Cache 12h trong `chrome.storage.local`, tối đa 3 fetch song song. Play là SPA → MutationObserver quét lại khi scroll/điều hướng; đổi trang sẽ reset danh sách panel.
+- play.google.com áp CSP **Trusted Types** (cấm `innerHTML` kể cả với content script) → toàn bộ UI dựng bằng `createElement`/`textContent`.
+
+## Hạn chế
+
+- Việc parse phụ thuộc cấu trúc HTML của Play (JSON-LD + label `Downloads` / `Updated on`). Nếu Google đổi markup, cập nhật regex trong `content.js` (`fetchAppInfo`).
+- App chưa có rating (quá mới) chỉ hiện lượt tải + ngày update.
+
+## Giấy phép
+
+[MIT](LICENSE) © [FightTech VN](https://github.com/fighttechvn)
