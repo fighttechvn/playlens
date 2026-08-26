@@ -1,0 +1,384 @@
+/* ===== icon overlay badge (flag: overlay) =====
+   Absolute inside the icon's parent so it takes no space in the card layout. */
+
+.plsi-badge {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 3px 6px 4px;
+  background: rgba(15, 15, 15, 0.72);
+  color: #fff;
+  font-size: 10px;
+  line-height: 1.3;
+  font-family: 'Google Sans Text', Roboto, Arial, sans-serif;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  pointer-events: none; /* let hover/click fall through to the card */
+}
+
+.plsi-badge span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.plsi-no-overlay .plsi-badge {
+  display: none;
+}
+
+.plsi-loading {
+  padding: 2px 6px;
+  opacity: 0.8;
+}
+
+.plsi-error {
+  pointer-events: auto; /* retry needs the click */
+  cursor: pointer;
+  color: #ffb4ab;
+  text-decoration: underline;
+}
+
+/* freshness of the update date — bright variants for the dark overlay */
+.plsi-badge .plsi-fresh {
+  color: #6dd58c;
+}
+
+.plsi-badge .plsi-aging {
+  color: #fcc934;
+}
+
+.plsi-badge .plsi-stale {
+  color: #f28b82;
+}
+
+/* ===== info line under the card's rating (flag: inline) ===== */
+
+.plsi-inline {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-top: 2px;
+  font-size: 11px;
+  line-height: 1.35;
+  font-family: 'Google Sans Text', Roboto, Arial, sans-serif;
+  color: #5f6368;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.plsi-inline span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.plsi-no-inline .plsi-inline {
+  display: none;
+}
+
+/* freshness — dark-on-light variants for the card background */
+.plsi-inline .plsi-fresh {
+  color: #1e8e3e;
+}
+
+.plsi-inline .plsi-aging {
+  color: #b06000;
+}
+
+.plsi-inline .plsi-stale {
+  color: #c5221f;
+}
+
+/* ===== floating toggle button ===== */
+
+.plsi-fab {
+  position: fixed;
+  right: 0;
+  top: 40%;
+  z-index: 2147483646;
+  padding: 10px 8px;
+  border: none;
+  border-radius: 10px 0 0 10px;
+  background: #1f1f1f;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.plsi-fab.plsi-hidden {
+  display: none;
+}
+
+/* ===== side panel (flag: panel) ===== */
+
+.plsi-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2147483647;
+  width: 420px;
+  max-width: 92vw;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  color: #1f1f1f;
+  font-family: 'Google Sans Text', Roboto, Arial, sans-serif;
+  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.18);
+  transform: translateX(100%);
+  transition: transform 0.2s ease;
+}
+
+.plsi-panel.plsi-open {
+  transform: translateX(0);
+}
+
+.plsi-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.plsi-panel-title {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.plsi-panel-count {
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.08);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.plsi-panel-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.plsi-btn {
+  padding: 3px 8px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.plsi-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.plsi-panel-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.plsi-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  table-layout: fixed;
+}
+
+.plsi-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 6px 8px;
+  background: #f1f3f4;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+
+.plsi-table th:hover {
+  background: #e8eaed;
+}
+
+.plsi-th-active {
+  color: #0b57d0;
+}
+
+.plsi-table td {
+  padding: 5px 8px;
+  border-top: 1px solid rgba(0, 0, 0, 0.07);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.plsi-col-app {
+  width: auto;
+}
+
+.plsi-col-num {
+  width: 58px;
+  text-align: right;
+}
+
+th.plsi-col-num {
+  text-align: right;
+}
+
+.plsi-col-upd {
+  width: 70px;
+  text-align: right;
+}
+
+th.plsi-col-upd {
+  text-align: right;
+}
+
+.plsi-row {
+  cursor: pointer;
+}
+
+.plsi-row:hover td {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.plsi-app-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.plsi-row-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  flex: none;
+  object-fit: cover;
+}
+
+.plsi-row-noicon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.08);
+  color: rgba(0, 0, 0, 0.4);
+  font-size: 11px;
+}
+
+.plsi-row-name {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.plsi-row-muted {
+  color: #9aa0a6;
+}
+
+.plsi-row-error {
+  color: #c5221f;
+}
+
+/* freshness in panel table — darker variants for the light background */
+td.plsi-fresh {
+  color: #1e8e3e;
+}
+
+td.plsi-aging {
+  color: #b06000;
+}
+
+td.plsi-stale {
+  color: #c5221f;
+}
+
+@media (prefers-color-scheme: dark) {
+  .plsi-inline {
+    color: #9aa0a6;
+  }
+
+  .plsi-inline .plsi-fresh {
+    color: #6dd58c;
+  }
+
+  .plsi-inline .plsi-aging {
+    color: #fcc934;
+  }
+
+  .plsi-inline .plsi-stale {
+    color: #f28b82;
+  }
+
+  .plsi-panel {
+    background: #1f1f1f;
+    color: #e3e3e3;
+    box-shadow: -4px 0 16px rgba(0, 0, 0, 0.6);
+  }
+
+  .plsi-panel-header {
+    border-bottom-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .plsi-panel-count {
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  .plsi-btn {
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+
+  .plsi-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .plsi-table th {
+    background: #2d2d2d;
+  }
+
+  .plsi-table th:hover {
+    background: #3c3c3c;
+  }
+
+  .plsi-th-active {
+    color: #a8c7fa;
+  }
+
+  .plsi-table td {
+    border-top-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .plsi-row:hover td {
+    background: rgba(255, 255, 255, 0.07);
+  }
+
+  .plsi-row-noicon {
+    background: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  td.plsi-fresh {
+    color: #6dd58c;
+  }
+
+  td.plsi-aging {
+    color: #fcc934;
+  }
+
+  td.plsi-stale {
+    color: #f28b82;
+  }
+}

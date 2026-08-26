@@ -1,0 +1,30 @@
+# Tự động build khi code được merge/push từ develop vào uat.
+# Kết quả: zip extension đính kèm vào artifacts của run.
+name: Build extension
+
+on:
+  push:
+    branches: [uat]
+  pull_request:
+    branches: [uat]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build zip
+        run: ./build.sh
+
+      - name: Read version
+        id: ver
+        run: echo "version=$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' manifest.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: playlens-v${{ steps.ver.outputs.version }}
+          path: dist/playlens-v${{ steps.ver.outputs.version }}.zip
+          if-no-files-found: error

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <style>
+    body {
+      width: 240px;
+      margin: 0;
+      padding: 12px 14px;
+      font-family: 'Google Sans Text', Roboto, Arial, sans-serif;
+      font-size: 13px;
+      color: #1f1f1f;
+      background: #fff;
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: 14px;
+    }
+    label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
+      cursor: pointer;
+    }
+    .hint {
+      margin-top: 8px;
+      font-size: 11px;
+      color: #5f6368;
+    }
+    .more {
+      display: inline-block;
+      margin-top: 10px;
+      font-size: 12px;
+      color: #0b57d0;
+      text-decoration: none;
+    }
+    .more:hover { text-decoration: underline; }
+    @media (prefers-color-scheme: dark) {
+      body { background: #1f1f1f; color: #e3e3e3; }
+      .hint { color: #9aa0a6; }
+      .more { color: #a8c7fa; }
+    }
+  </style>
+</head>
+<body>
+  <h1>PlayLens</h1>
+  <label><input type="checkbox" id="overlay" /> Badge overlay trên icon</label>
+  <label><input type="checkbox" id="inline" /> Thông tin dưới rating trong card</label>
+  <label><input type="checkbox" id="panel" /> Panel danh sách bên phải</label>
+  <label><input type="checkbox" id="panelOpen" /> Mở panel sẵn khi vào trang</label>
+  <div class="hint">Áp dụng ngay, không cần reload trang.</div>
+  <a href="#" id="openOptions" class="more">⚙ Mở trang cài đặt đầy đủ</a>
+  <script src="popup.js"></script>
+</body>
+</html>
