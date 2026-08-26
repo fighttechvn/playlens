@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "PlayLens – Play Store Downloads, Reviews & Update Dates",
   "short_name": "PlayLens",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "description": "Show downloads, review count and last-updated date on every app card in Google Play lists (developer / collection / search pages).",
   "permissions": ["storage", "clipboardWrite"],
   "icons": {

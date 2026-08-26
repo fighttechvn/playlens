@@ -10,7 +10,7 @@ Chrome extension that shows **⬇ downloads · rating★ + review count · ⟳ l
 
 Three display modes, each toggleable independently via feature flags:
 
-1. **Icon overlay badge** — a compact info strip on the bottom of each app icon (zero layout shift).
+1. **Icon overlay badge** — a compact info strip on the bottom of each app icon (zero layout shift). Automatically hidden while mode 2 is on, so the same numbers never appear twice on one card.
 2. **Inline under the rating** — a small line (`⬇100M+ · 824.1K rv` + `⟳ update date`, color-coded) inserted right below each card's own rating.
 3. **Side panel** — a fixed panel on the right rendered as a **table**: App (icon + name) · ⬇ downloads · ★ rating · Rv reviews · Updated (`d/M/yy`, freshness-colored). **Click a column header to sort** (click again to reverse, ▲/▼ indicator); click a row to open the app. A **CSV** button copies the whole list to the clipboard. Toggle with the floating 📊 button on the right edge; the open state is remembered.
 
@@ -39,7 +39,7 @@ Creates `dist/playlens-v<version>.zip` (version read from `manifest.json`, runti
 
 | Flag | Default | Meaning |
 |---|---|---|
-| `overlay` | on | Badge overlaid on each icon |
+| `overlay` | on | Badge overlaid on each icon (suppressed while `inline` is on) |
 | `inline` | on | Info line under each card's own rating |
 | `panel` | on | Right-side list panel (with the 📊 button) |
 | `panelOpen` | off | Auto-open the panel on page load |

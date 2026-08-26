@@ -75,7 +75,10 @@
   }
 
   function applyFlags() {
-    document.documentElement.classList.toggle('plsi-no-overlay', !state.flags.overlay);
+    // Inline line carries the same numbers, so it wins over the icon badge:
+    // never show both for one card.
+    const overlay = state.flags.overlay && !state.flags.inline;
+    document.documentElement.classList.toggle('plsi-no-overlay', !overlay);
     document.documentElement.classList.toggle('plsi-no-inline', !state.flags.inline);
     if (state.flags.panel) {
       ensurePanel();

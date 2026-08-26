@@ -23,8 +23,14 @@
       padding: 6px 0;
       cursor: pointer;
     }
+    label input { flex: none; }
     .hint {
       margin-top: 8px;
+      font-size: 11px;
+      color: #5f6368;
+    }
+    small {
+      display: block;
       font-size: 11px;
       color: #5f6368;
     }
@@ -38,14 +44,14 @@
     .more:hover { text-decoration: underline; }
     @media (prefers-color-scheme: dark) {
       body { background: #1f1f1f; color: #e3e3e3; }
-      .hint { color: #9aa0a6; }
+      .hint, small { color: #9aa0a6; }
       .more { color: #a8c7fa; }
     }
   </style>
 </head>
 <body>
   <h1>PlayLens</h1>
-  <label><input type="checkbox" id="overlay" /> Badge overlay trên icon</label>
+  <label><input type="checkbox" id="overlay" /> <span>Badge overlay trên icon <small>(ẩn khi bật dòng dưới rating)</small></span></label>
   <label><input type="checkbox" id="inline" /> Thông tin dưới rating trong card</label>
   <label><input type="checkbox" id="panel" /> Panel danh sách bên phải</label>
   <label><input type="checkbox" id="panelOpen" /> Mở panel sẵn khi vào trang</label>

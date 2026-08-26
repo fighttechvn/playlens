@@ -10,7 +10,7 @@ Chrome extension hiển thị **⬇ lượt tải · rating★ + số review · 
 
 Ba chế độ hiển thị, bật/tắt độc lập bằng feature flag:
 
-1. **Badge đè trên icon** — dải thông tin gọn ở đáy icon mỗi app (không làm vỡ layout).
+1. **Badge đè trên icon** — dải thông tin gọn ở đáy icon mỗi app (không làm vỡ layout). Tự ẩn khi bật chế độ 2 để cùng một con số không hiện hai lần trên một card.
 2. **Inline dưới rating** — dòng nhỏ (`⬇100M+ · 824.1K rv` + `⟳ ngày update` tô màu) chèn ngay dưới dòng rating sẵn có của card.
 3. **Panel bên phải** — panel cố định dạng **bảng**: App (icon + tên) · ⬇ tải · ★ rating · Rv review · Updated (`d/M/yy`, tô màu độ tươi). **Click tiêu đề cột để sort** (click lại để đảo chiều, có ▲/▼); click dòng để mở app. Nút **CSV** copy toàn bộ danh sách vào clipboard. Bật/tắt bằng nút 📊 nổi ở mép phải; trạng thái mở được ghi nhớ.
 
@@ -39,7 +39,7 @@ Tạo `dist/playlens-v<version>.zip` (version đọc từ `manifest.json`, chỉ
 
 | Flag | Mặc định | Ý nghĩa |
 |---|---|---|
-| `overlay` | bật | Badge đè trên icon mỗi app |
+| `overlay` | bật | Badge đè trên icon mỗi app (tự ẩn khi `inline` đang bật) |
 | `inline` | bật | Dòng thông tin dưới rating sẵn có của card |
 | `panel` | bật | Panel danh sách bên phải (kèm nút 📊) |
 | `panelOpen` | tắt | Tự mở panel khi vào trang |
