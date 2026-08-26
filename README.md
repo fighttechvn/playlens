@@ -77,7 +77,8 @@ Besides the quick popup there is a **full settings page** (`options.html`): righ
   - **Updated on** — the update date, color-coded by freshness: green ≤ 6 months, amber ≤ 18 months, red older
 - Badges wait for lazy-loaded icons to finish loading before attaching (avoids floating badges on zero-height images); corner radius is copied from the icon.
 - Opening an app's detail page adds it to the **Recent** list in `chrome.storage.local` (60 entries, newest first, deduplicated by package). It never leaves the browser; clear it from the panel or the options page.
-- Overlay badges are measured against the icon box, not its container, so they stay on the icon in list rows (detail-page rails) as well as grid cards; on icons under 96px the strip drops the review count and shortens the date instead of clipping.
+- Overlay badges are measured against the icon box, not its container, so they stay on the icon in list rows (detail-page rails) as well as grid cards; on icons under 96px the strip keeps only the download count and a short date, since the card already prints the rating next to the icon.
+- A search result puts a wide screenshot before the app icon, so the badge picks the square image (`=s<size>` crop) rather than the first one. Play also re-renders search cards after they appear, dropping the decorations and the positioning we set — every re-scan puts them back.
 - 12h cache in `chrome.storage.local`, at most 3 detail fetches in parallel. Play is an SPA → a MutationObserver re-scans on scroll/navigation; changing pages resets the panel list.
 - play.google.com enforces a **Trusted Types** CSP (blocks `innerHTML` even for content scripts) → all UI is built with `createElement`/`textContent`.
 

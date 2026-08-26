@@ -77,7 +77,8 @@ Ngoài popup nhanh còn có **trang cài đặt đầy đủ** (`options.html`):
   - **Updated on** — ngày update, tô màu theo độ tươi: xanh ≤ 6 tháng, cam ≤ 18 tháng, đỏ nếu cũ hơn
 - Badge chờ icon lazy-load tải xong mới gắn (tránh badge trôi trên ảnh cao 0px); bo góc copy theo icon.
 - Mở trang chi tiết một app sẽ ghi app đó vào danh sách **Recent** trong `chrome.storage.local` (60 mục, mới nhất trước, không trùng package). Dữ liệu không rời khỏi trình duyệt; xóa từ panel hoặc trang cài đặt.
-- Badge overlay được đo theo khung icon chứ không theo khung cha, nên vẫn nằm gọn trên icon ở cả dòng danh sách (rail của trang chi tiết) lẫn card dạng lưới; icon nhỏ hơn 96px thì bỏ số review và rút gọn ngày thay vì bị cắt chữ.
+- Badge overlay được đo theo khung icon chứ không theo khung cha, nên vẫn nằm gọn trên icon ở cả dòng danh sách (rail của trang chi tiết) lẫn card dạng lưới; icon nhỏ hơn 96px chỉ giữ lượt tải và ngày rút gọn, vì card đã in sẵn rating ngay cạnh icon.
+- Card ở trang tìm kiếm đặt ảnh chụp màn hình trước icon, nên badge chọn ảnh vuông (crop `=s<size>`) thay vì ảnh đầu tiên. Play còn render lại card tìm kiếm sau khi hiện, xóa mất phần chèn thêm và thuộc tính vị trí — mỗi lần quét lại sẽ gắn lại.
 - Cache 12h trong `chrome.storage.local`, tối đa 3 fetch song song. Play là SPA → MutationObserver quét lại khi scroll/điều hướng; đổi trang sẽ reset danh sách panel.
 - play.google.com áp CSP **Trusted Types** (cấm `innerHTML` kể cả với content script) → toàn bộ UI dựng bằng `createElement`/`textContent`.
 

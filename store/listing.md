@@ -1,7 +1,7 @@
 # Chrome Web Store — submission package
 
 Everything to copy-paste into the [CWS Developer Dashboard](https://chrome.google.com/webstore/devconsole).
-Upload file: `dist/playlens-v1.6.0.zip` (run `./build.sh`).
+Upload file: `dist/playlens-v1.6.1.zip` (run `./build.sh`).
 
 Every field below was written against the [listing requirements](https://developer.chrome.com/docs/webstore/program-policies/listing-requirements)
 and the [Google branding guidelines](https://developer.chrome.com/docs/webstore/branding) — see
@@ -135,7 +135,7 @@ Every keyword describes something the extension actually does — no unrelated t
 ## Submit checklist (owner actions)
 
 1. Register a developer account at https://chrome.google.com/webstore/devconsole ($5 one-time fee).
-2. New item → upload `dist/playlens-v1.6.0.zip`.
+2. New item → upload `dist/playlens-v1.6.1.zip`.
 3. Fill Store listing + Privacy + Distribution tabs from this file.
 4. Submit for review. Typical review time: a few hours to a few days; first submissions with host permissions can take longer.
 5. After approval, add the CWS link to README + landing page CTA.

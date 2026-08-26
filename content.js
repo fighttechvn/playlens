@@ -238,13 +238,15 @@
     badge.classList.remove('plsi-loading', 'plsi-error');
     badge.textContent = '';
     badge.plsiInfo = info; // kept so the badge can re-render if the icon resizes
-    // A list-row icon is ~64px wide; the full strip would just be clipped there,
-    // so drop the review count and shorten the date instead of losing them.
+    // A search or list-row icon is ~64px wide; the full strip would just be
+    // clipped there. The card prints the rating right beside the icon anyway,
+    // so a small badge keeps the two things the card doesn't say: how many
+    // installs, and how recently it was updated.
     const tight = badge.classList.contains('plsi-badge-sm');
     const line1 = [];
     if (info.downloads) line1.push('⬇' + info.downloads);
     if (tight) {
-      if (info.rating != null) line1.push(info.rating + '★');
+      if (!line1.length && info.rating != null) line1.push(info.rating + '★');
     } else if (info.reviews != null) {
       const r = info.rating != null ? info.rating + '★ ' : '';
       line1.push(r + compact(info.reviews));
@@ -704,6 +706,12 @@
   // the container's edges would stretch it across the title and rating. Measure
   // the icon instead and inset the badge to its box.
   function fitBadgeToIcon(badge, img, holder) {
+    // Re-rendering a card resets its style attribute, dropping the relative
+    // position the badge is anchored to — without it the offsets below would
+    // resolve against some ancestor and drop the badge below the icon.
+    if (getComputedStyle(holder).position === 'static') {
+      holder.style.position = 'relative';
+    }
     const ib = img.getBoundingClientRect();
     const hb = holder.getBoundingClientRect();
     if (!ib.width || !hb.width) return;
@@ -730,6 +738,27 @@
           }
         })
       : null;
+
+  // A resize observer misses pure movement: on a search card the screenshot
+  // above the icon loads late and pushes the icon down without either box
+  // changing size, which would leave the badge hanging below it.
+  function refitAll() {
+    const done = new Set();
+    for (const t of fitted.values()) {
+      if (done.has(t.badge) || !t.badge.isConnected) continue;
+      done.add(t.badge);
+      fitBadgeToIcon(t.badge, t.img, t.holder);
+    }
+  }
+
+  let refitTimer = null;
+  function scheduleRefit() {
+    if (refitTimer) return;
+    refitTimer = setTimeout(() => {
+      refitTimer = null;
+      refitAll();
+    }, 150);
+  }
 
   function attachBadge(app, img) {
     const holder = img.parentElement;
@@ -782,9 +811,41 @@
       info: null,
       badge: null,
       inline: null,
+      anchor: null,
     });
     enqueue(id);
     schedulePanelRender();
+  }
+
+  // A search result puts a wide screenshot before the app icon, so the first
+  // <img> in the card is the wrong one to badge. Icons are square and Play
+  // serves them with an "=s<size>" crop; screenshots come as "=w<w>-h<h>".
+  function iconOf(a) {
+    const imgs = a.querySelectorAll('img');
+    if (imgs.length < 2) return imgs[0] || null;
+    for (const img of imgs) {
+      if (img.naturalWidth > 0 && img.naturalWidth === img.naturalHeight) return img;
+      if (/=s\d+/.test(img.currentSrc || img.src || '')) return img;
+      const r = img.getBoundingClientRect();
+      if (r.width > 0 && Math.abs(r.width - r.height) <= 2) return img;
+    }
+    return imgs[0];
+  }
+
+  // Play re-renders search cards a moment after they first appear and takes our
+  // nodes with it. The card keeps its data-plsi mark, so without this it would
+  // stay bare for the rest of the visit.
+  function restoreDecor(app, a, img) {
+    if (app.inline && !app.inline.isConnected) attachInline(app, a);
+    if (
+      app.badge &&
+      !app.badge.isConnected &&
+      img.complete &&
+      img.naturalWidth > 0 &&
+      !img.parentElement?.querySelector('.plsi-badge')
+    ) {
+      attachBadge(app, img);
+    }
   }
 
   function scan() {
@@ -795,17 +856,20 @@
 
     const anchors = document.querySelectorAll('a[href*="/store/apps/details?id="]');
     for (const a of anchors) {
-      if (a.dataset.plsi) continue;
-      a.dataset.plsi = '1';
-
       const id = appIdFromHref(a.getAttribute('href'));
       if (!id || id === selfId) continue;
 
       // Only anchors that look like cards (contain an icon image).
-      const img = a.querySelector('img');
+      const img = iconOf(a);
       if (!img) continue;
 
       let app = state.apps.get(id);
+      if (a.dataset.plsi) {
+        if (app && app.anchor === a) restoreDecor(app, a, img);
+        continue;
+      }
+      a.dataset.plsi = '1';
+
       if (!app) {
         app = {
           id,
@@ -816,6 +880,7 @@
           info: null,
           badge: null,
           inline: null,
+          anchor: null,
         };
         state.apps.set(id, app);
         enqueue(id);
@@ -826,9 +891,12 @@
 
       if (seenIds.has(id)) continue; // one badge/inline per app per page
       seenIds.add(id);
+      app.anchor = a; // the card that owns the decorations, for restoreDecor
       attachBadge(app, img);
       attachInline(app, a);
     }
+
+    scheduleRefit();
   }
 
   // Play is an SPA: re-scan on DOM changes and URL changes.
@@ -845,6 +913,10 @@
         state.order = 0;
         fitted.clear();
         fitObserver?.disconnect();
+        // Cards Play carries over to the next view keep their mark and their
+        // old decorations — strip both so the new page is scanned from scratch.
+        for (const n of document.querySelectorAll('.plsi-badge, .plsi-inline')) n.remove();
+        for (const a of document.querySelectorAll('a[data-plsi]')) delete a.dataset.plsi;
         schedulePanelRender();
       }
       scan();
@@ -858,6 +930,10 @@
     watchFlags();
     applyFlags();
     observer.observe(document.documentElement, { childList: true, subtree: true });
+    // A screenshot loading elsewhere in the card moves the icon without
+    // changing any box we observe, so re-fit on image loads and on resize too.
+    document.addEventListener('load', scheduleRefit, true);
+    addEventListener('resize', scheduleRefit);
     scan();
   })();
 })();
