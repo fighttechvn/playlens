@@ -46,6 +46,19 @@ jobs:
           CWS_REFRESH_TOKEN: ${{ secrets.CWS_REFRESH_TOKEN }}
           CWS_ITEM_ID: ${{ secrets.CWS_ITEM_ID }}
         run: |
+          # Until the first manual submission the store item has no listing, so
+          # the secrets don't exist yet — say so and stop, rather than failing
+          # every release. A half-configured repo is a real error and still fails.
+          set=0
+          for v in "$CWS_CLIENT_ID" "$CWS_CLIENT_SECRET" "$CWS_REFRESH_TOKEN" "$CWS_ITEM_ID"; do
+            [[ -n "$v" ]] && set=$((set + 1))
+          done
+          if (( set == 0 )); then
+            echo "::notice::Chrome Web Store secrets are not configured — skipping the upload. See store/api-publishing.md."
+            ./build.sh   # the release still gets its zip attached below
+            exit 0
+          fi
+
           # Publishing a GitHub release is already the deliberate "ship it"
           # gesture, so it submits. A manual run has to opt in.
           if [[ "${{ github.event_name }}" == "release" || "${{ inputs.submit }}" == "true" ]]; then

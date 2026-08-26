@@ -93,6 +93,9 @@ number.
 To upload without submitting, run the workflow manually from the Actions tab and leave
 the *Submit for review* box unchecked.
 
+Until those secrets exist the workflow just builds the zip, attaches it to the release and
+says so in a notice — releases don't turn red while the first submission is still pending.
+
 If you want a human gate on publishing, create an environment named `chrome-web-store`
 with required reviewers and add `environment: chrome-web-store` to the job.
 
