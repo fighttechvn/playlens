@@ -29,6 +29,19 @@ Three display modes, each toggleable independently via feature flags:
 
 Creates `dist/playlens-v<version>.zip` (version read from `manifest.json`, runtime files only, no `.DS_Store`) — ready to upload to the Chrome Web Store or share. CI runs the same build when `develop` is merged into `uat` (see `.github/workflows/build.yml`).
 
+## Publishing
+
+The first Chrome Web Store submission is manual — the API can't create listing text or upload screenshots. Everything to paste in is in [store/listing.md](store/listing.md).
+
+Once the item exists, version updates are one command:
+
+```bash
+./tools/publish.sh              # upload as a draft
+./tools/publish.sh --publish    # upload and submit for review
+```
+
+Setup for that (OAuth client, refresh token, item ID) is in [store/api-publishing.md](store/api-publishing.md).
+
 ## Branches & CI
 
 - `main` — releases (landing page in `docs/` published via GitHub Pages)

@@ -131,3 +131,5 @@ Every keyword describes something the extension actually does — no unrelated t
 3. Fill Store listing + Privacy + Distribution tabs from this file.
 4. Submit for review. Typical review time: a few hours to a few days; first submissions with host permissions can take longer.
 5. After approval, add the CWS link to README + landing page CTA.
+6. Grab the item ID from the dashboard URL and set up [api-publishing.md](api-publishing.md)
+   — every version after this one can then be shipped with `./tools/publish.sh`.

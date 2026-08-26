@@ -29,6 +29,19 @@ Ba chế độ hiển thị, bật/tắt độc lập bằng feature flag:
 
 Tạo `dist/playlens-v<version>.zip` (version đọc từ `manifest.json`, chỉ gồm file runtime, không có `.DS_Store`) — sẵn sàng upload Chrome Web Store hoặc chia sẻ. CI chạy đúng lệnh build này khi merge `develop` vào `uat` (xem `.github/workflows/build.yml`).
 
+## Phát hành
+
+Lần submit đầu lên Chrome Web Store phải làm tay — API không tạo được nội dung listing hay upload screenshot. Mọi thứ cần dán có sẵn ở [store/listing.md](store/listing.md).
+
+Khi item đã tồn tại, các lần cập nhật version chỉ còn một lệnh:
+
+```bash
+./tools/publish.sh              # upload bản nháp
+./tools/publish.sh --publish    # upload và gửi duyệt
+```
+
+Cách cài đặt (OAuth client, refresh token, item ID) ở [store/api-publishing.md](store/api-publishing.md).
+
 ## Nhánh & CI
 
 - `main` — release (landing page trong `docs/` publish qua GitHub Pages)
