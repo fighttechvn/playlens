@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
   <meta charset="utf-8" />
   <style>
     body {
-      width: 240px;
+      width: 260px;
       margin: 0;
       padding: 12px 14px;
       font-family: 'Google Sans Text', Roboto, Arial, sans-serif;
@@ -15,6 +15,14 @@
     h1 {
       margin: 0 0 10px;
       font-size: 14px;
+    }
+    h2 {
+      margin: 10px 0 2px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #5f6368;
     }
     label {
       display: flex;
@@ -44,7 +52,7 @@
     .more:hover { text-decoration: underline; }
     @media (prefers-color-scheme: dark) {
       body { background: #1f1f1f; color: #e3e3e3; }
-      .hint, small { color: #9aa0a6; }
+      .hint, small, h2 { color: #9aa0a6; }
       .more { color: #a8c7fa; }
     }
   </style>
@@ -56,6 +64,12 @@
   <label><input type="checkbox" id="panel" /> Panel danh sách bên phải</label>
   <label><input type="checkbox" id="panelOpen" /> Mở panel sẵn khi vào trang</label>
   <label><input type="checkbox" id="recent" /> Lưu app đã xem vào tab Recent</label>
+  <h2>Số liệu</h2>
+  <label><input type="checkbox" id="exact" /> Lượt cài chính xác</label>
+  <label><input type="checkbox" id="age" /> Tuổi app và lượt cài mỗi ngày</label>
+  <label><input type="checkbox" id="rank" /> Thứ hạng trên trang tìm kiếm</label>
+  <label><input type="checkbox" id="history" /> Lưu số liệu mỗi ngày</label>
+  <label><input type="checkbox" id="bgRefresh" /> <span>Tự cập nhật Watchlist <small>(khoảng 6 giờ một lần)</small></span></label>
   <div class="hint">Áp dụng ngay, không cần reload trang.</div>
   <a href="#" id="openOptions" class="more">⚙ Mở trang cài đặt đầy đủ</a>
   <script src="popup.js"></script>

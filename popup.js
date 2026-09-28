@@ -1,4 +1,15 @@
-const DEFAULTS = { overlay: true, inline: true, panel: true, panelOpen: false, recent: true };
+const DEFAULTS = {
+  overlay: true,
+  inline: true,
+  panel: true,
+  panelOpen: false,
+  recent: true,
+  exact: true,
+  age: true,
+  rank: true,
+  history: true,
+  bgRefresh: true,
+};
 
 const boxes = {};
 for (const key of Object.keys(DEFAULTS)) {

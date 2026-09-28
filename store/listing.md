@@ -1,7 +1,18 @@
 # Chrome Web Store — submission package
 
+**Live since 30 Aug 2026:** [https://chromewebstore.google.com/detail/playlens-%E2%80%93-app-stats-for/hnhlkgnfbcijmnaaclpliogmmnflekko](https://chromewebstore.google.com/detail/playlens-%E2%80%93-app-stats-for/hnhlkgnfbcijmnaaclpliogmmnflekko) — item `hnhlkgnfbcijmnaaclpliogmmnflekko`.
+This file stays as the source of truth for the listing text; edit it here, then paste
+the changed field into the dashboard.
+
 Everything to copy-paste into the [CWS Developer Dashboard](https://chrome.google.com/webstore/devconsole).
-Upload file: `dist/playlens-v1.6.1.zip` (run `./build.sh`).
+Upload file: `dist/playlens-v2.0.0.zip` (run `./build.sh`).
+
+> **2.0.0 changes what the item asks for.** It adds the `alarms` permission and a host
+> permission for `https://play.google.com/*` (1.6.1 reached the same site through the
+> content script only). Before submitting: paste the new description, replace the
+> screenshots, and fill in the two new justifications on the Privacy tab. Chrome should show
+> no new warning to people who already have it installed — the site was already listed —
+> but the review can take longer than a text-only update.
 
 Every field below was written against the [listing requirements](https://developer.chrome.com/docs/webstore/program-policies/listing-requirements)
 and the [Google branding guidelines](https://developer.chrome.com/docs/webstore/branding) — see
@@ -12,38 +23,45 @@ and the [Google branding guidelines](https://developer.chrome.com/docs/webstore/
 **Name** (from manifest, shown automatically):
 PlayLens – App Stats for Google Play
 
-**Summary** (max 132 chars — this is 130):
-See downloads, exact review counts and last-updated dates for every app on Google Play list pages. Free, open source, no tracking.
+**Summary** (taken from `description` in `manifest.json`; max 132 chars — this is 128):
+App statistics on Google Play lists: exact installs, app age, ratings spread, prices, a watchlist, keyword ideas and CSV export.
 
 **Description:**
 
 ```
-Researching apps on Google Play means opening them one by one just to see how many downloads they have. PlayLens puts those numbers on the list itself.
+Researching Google Play means opening listings one by one just to see how they are doing. PlayLens puts the numbers on the list itself, with a side panel to compare, follow and export them.
 
-For every app card on a Google Play list page — developer pages, search results, collections, the home page — PlayLens adds:
+ON EVERY CARD
+⬇ Exact install count (49.2M, not just "10M+")
+★ Rating and the exact number of ratings
+⟳ Last-updated date, color-coded: green = within 6 months, amber = within 18 months, red = older
+◷ Time since release and average downloads per day — new releases stand out
+# Position number on search results
 
-⬇ Download count (100K+, 1M+, 100M+)
-★ Rating and the EXACT review count (824.1K, not a rounded "824K") — read from each app's own detail page
-⟳ Last-updated date, color-coded: green = updated within 6 months, amber = within 18 months, red = older
+Works on search results, developer pages, collections, the home page and the "Similar" rails of a single listing.
 
-WHO IT'S FOR
-Developers sizing up competitors, ASO and marketing teams building research lists, and anyone who wants to know whether something is still maintained before installing it.
+SIDE PANEL
+A sortable table of everything on the page. Pick the columns you need (category, version, minimum Android, price, in-app purchases, ads, ratings per install), filter by size, score, age or freshness, and save the result as CSV or JSON.
 
-THREE VIEWS — TURN ON WHAT YOU LIKE
-• Icon overlay badge — a compact strip along the bottom of each icon. No layout shift.
-• Inline info line — an extra line right under each card's own rating, styled to match the page.
-• Sortable side panel — a table of everything scanned so far. Sort by installs, rating, reviews or update date, click a row to open it, and copy the whole table as CSV for a spreadsheet.
+DETAILS FOR EACH ROW
+The spread of 1–5★ with the share of unhappy users, price and in-app purchase range, data safety labels, developer email and website, store screenshots, and shortcuts to look the same title up elsewhere. One click compares price and score across countries.
 
-ALSO ON A SINGLE APP'S PAGE
-The "Similar apps" and "More by this developer" rails feed the same table, with the one you are reading pinned at the top — so you can compare it against its neighbours without leaving the page.
+REVIEWS
+Read the latest 1–3★ reviews with the words that come up most, and save them as CSV or JSON. Reviewer names are left out.
 
-RECENT LIST
-The panel's Recent tab keeps the last 60 titles whose page you opened, newest first, together with their numbers. It lives on your device, survives a browser restart, and can be cleared or switched off at any time.
+WATCHLIST
+Star anything to follow it. A daily record kept on your device gives measured growth per day with a small trend line, and marks changes of version, name, price or score. Followed titles are re-checked about every six hours — switch that off whenever you like.
 
-Each view toggles independently from the toolbar popup or the full settings page, and changes apply instantly with no page reload.
+KEYWORDS
+Type a word to get the store's own search suggestions, then see how open each term looks, judged from the size, age, monetization and freshness of its first 10 results.
+
+DEVELOPER PAGES
+A summary of the whole portfolio: combined and median installs, average score, and how many titles were updated in the last 90 days.
+
+Every part toggles from the toolbar popup or the settings page, and changes apply instantly.
 
 PRIVATE BY DESIGN
-No account. No analytics. No external servers. It runs only on play.google.com and reads the same public pages you could open yourself. Results are cached on your device for 12 hours and nothing ever leaves your browser.
+No account. No analytics. No servers of our own. PlayLens sends requests only to play.google.com and reads the same public pages you could open yourself. Everything it keeps stays on your device and can be cleared from the settings page.
 
 FREE AND OPEN SOURCE
 MIT licensed. Source code, issue tracker and releases:
@@ -58,20 +76,25 @@ PlayLens is an independent project. It is not affiliated with, endorsed by, or s
 
 **Graphics:**
 - Store icon 128×128: `icons/icon128.png`
-- Screenshots 1280×800: `store/screenshot-1-panel.png`, `store/screenshot-2-cards.png`
+- Screenshots 1280×800 (`node tools/capture-store.js`): `store/screenshot-1-panel.png`,
+  `store/screenshot-2-cards.png`, `store/screenshot-3-details.png`,
+  `store/screenshot-4-watchlist.png`, `store/screenshot-5-keywords.png`
 - Small promo tile 440×280: optional, skip
 
 ## Privacy tab
 
 - **Single purpose description:**
-  Displays public app statistics (download count, review count, last-updated date) on Google Play list pages.
+  Shows public statistics about the apps listed on Google Play pages (installs, ratings, age, price, update date), and lets the user compare, follow and export them.
 - **Permission justifications:**
-  - `storage` — saves the user's display settings (feature flags), the list of recently opened apps shown in the panel's Recent tab, and a 12-hour local cache of public app stats so list pages load faster. All of it stays in the browser.
-  - `clipboardWrite` — used only when the user clicks the CSV button to copy the visible app list to the clipboard.
-  - Host `play.google.com` (content script) — the extension's single purpose is to annotate Google Play list pages; it reads list pages and fetches public app detail pages on the same site. It never runs anywhere else.
+  - `storage` — saves the user's display settings, the list of recently opened apps, the watchlist with its daily record of public numbers, and a 12-hour cache of public app data so pages load faster. All of it stays in the browser.
+  - `clipboardWrite` — used only when the user clicks a Copy button (the table as CSV, a developer's email address, a list of search terms).
+  - `alarms` — wakes the service worker about every six hours to re-read the Google Play pages of the apps the user put on the watchlist, so changes of version, price or rating can be shown. Nothing is scheduled to run against any other site, no request is made while the watchlist is empty, and the user can switch it off in the settings.
+  - Host `https://play.google.com/*` — the extension's single purpose is to annotate Google Play pages. The content script reads the list the user is looking at and fetches the public detail pages of the apps on it; the service worker fetches the same public pages for the watchlist. It never runs on, or sends anything to, any other site.
 - **Remote code:** No, all code is packaged in the extension.
 - **Data usage:** check **nothing** (no data collected). Certify the disclosures.
 - **Privacy policy URL:** https://fighttechvn.github.io/playlens/privacy.html
+  (`docs/privacy.html` — updated for 2.0.0; it goes live when `main` is pushed, so push
+  before submitting.)
 
 ## Distribution
 
@@ -108,36 +131,60 @@ The guidelines do permit descriptive use with `for` / `for use with` / `compatib
 > "Unnatural repetition of the same keyword more than 5 times" · "irrelevant or excessive
 > keywords in an extensions description in an attempt to manipulate its ranking"
 
-Occurrence counts in the description above — the limit is 5:
+Occurrence counts in the description above (word and its plural, any case) — the limit
+is 5:
 
 | Keyword | Count |
 |---|---|
-| Google Play | 3 |
+| Google Play | 2 |
 | PlayLens | 4 |
-| download / downloads | 2 |
-| review / reviews | 2 |
-| rating | 3 |
-| app / apps | 5 |
+| install / installs | 3 |
+| review / reviews | 3 |
+| rating / ratings | 3 |
+| price | 4 |
+| score | 4 |
+| developer | 3 |
+| search | 3 |
+| CSV | 2 |
 | panel | 2 |
-| recent | 2 |
+| watchlist | 1 |
+| keywords | 1 |
 
 Every keyword describes something the extension actually does — no unrelated terms
-(no "free VPN", "downloader", competitor names) are present.
+(no "free VPN", "downloader", competitor names) are present. The three outside sites the
+details view links to are deliberately not named in the description.
 
 ### Metadata accuracy
 
 > "We don't allow extensions with misleading, inaccurate, incomplete … metadata"
 
-- ✅ Both screenshots are real captures of the current build at 1280×800, not mockups.
+- ✅ All screenshots are real captures of the current build at 1280×800, not mockups.
 - ✅ The description claims no feature that isn't in the shipped code.
-- ✅ Permissions listed in the manifest are exactly the two the code uses.
+- ✅ Permissions listed in the manifest are exactly what the code uses: `storage`,
+  `clipboardWrite`, `alarms`, and the one host `https://play.google.com/*`.
+- ✅ No revenue or earnings figures are shown anywhere — they cannot be read from public
+  pages, so the extension does not guess them.
+- ✅ Reviewer names are left out of the reviews view and of the review export.
 
 ## Submit checklist (owner actions)
 
-1. Register a developer account at https://chrome.google.com/webstore/devconsole ($5 one-time fee).
-2. New item → upload `dist/playlens-v1.6.1.zip`.
-3. Fill Store listing + Privacy + Distribution tabs from this file.
-4. Submit for review. Typical review time: a few hours to a few days; first submissions with host permissions can take longer.
-5. After approval, add the CWS link to README + landing page CTA.
-6. Grab the item ID from the dashboard URL and set up [api-publishing.md](api-publishing.md)
-   — every version after this one can then be shipped with `./tools/publish.sh`.
+The first submission is done — kept here as the record of what it took, and as the
+recipe if a second item ever needs the same treatment.
+
+1. ~~Register a developer account at https://chrome.google.com/webstore/devconsole ($5 one-time fee).~~ ✅
+2. ~~New item → upload `dist/playlens-v1.6.1.zip`.~~ ✅
+3. ~~Fill Store listing + Privacy + Distribution tabs from this file.~~ ✅
+4. ~~Submit for review.~~ ✅ approved.
+5. ~~After approval, add the CWS link to README + landing page CTA.~~ ✅ both READMEs and `docs/index.html`.
+6. ~~Grab the item ID from the dashboard URL~~ ✅ `hnhlkgnfbcijmnaaclpliogmmnflekko` — now in
+   [api-publishing.md](api-publishing.md); every version after this one ships with `./tools/publish.sh`.
+
+Still open for the owner: set the four `CWS_*` repository secrets so CI can publish updates.
+
+### Updating to 2.0.0
+
+1. Push `main` so the updated privacy policy is live.
+2. Package → upload `dist/playlens-v2.0.0.zip`.
+3. Store listing tab: paste the new description, replace the screenshots.
+4. Privacy tab: new single purpose text, justifications for `alarms` and the host permission.
+5. Submit for review.

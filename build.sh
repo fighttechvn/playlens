@@ -9,7 +9,9 @@ cd "$(dirname "$0")"
 # Các file thực sự cần cho extension chạy (không kèm README, dist, script này)
 FILES=(
   manifest.json
+  core.js
   content.js
+  background.js
   styles.css
   popup.html
   popup.js

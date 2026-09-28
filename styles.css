@@ -1,3 +1,55 @@
+/* PlayLens — everything is prefixed plsi- so nothing leaks into Play's own
+   styles. Colours are tokens: the light set on :root, the dark set below. */
+
+:root {
+  --plsi-ink: #1f1f1f;
+  --plsi-muted: #5f6368;
+  --plsi-faint: #696e73;
+  --plsi-surface: #fff;
+  --plsi-surface-2: #f1f3f4;
+  --plsi-surface-3: #e8eaed;
+  --plsi-line: rgba(0, 0, 0, 0.1);
+  --plsi-hover: rgba(0, 0, 0, 0.06);
+  --plsi-accent: #0b57d0;
+  --plsi-accent-soft: rgba(11, 87, 208, 0.12);
+  --plsi-good: #0f6b2e;
+  --plsi-warn: #8a4d00;
+  --plsi-bad: #b3261e;
+  --plsi-good-soft: rgba(15, 107, 46, 0.14);
+  --plsi-warn-soft: rgba(138, 77, 0, 0.14);
+  --plsi-bad-soft: rgba(179, 38, 30, 0.12);
+  --plsi-star: #8a4d00;
+  --plsi-shadow: rgba(0, 0, 0, 0.18);
+  --plsi-font: 'Google Sans Text', Roboto, Arial, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --plsi-ink: #e3e3e3;
+    --plsi-muted: #9aa0a6;
+    --plsi-faint: #969ba0;
+    --plsi-surface: #1f1f1f;
+    --plsi-surface-2: #2d2d2d;
+    --plsi-surface-3: #3c3c3c;
+    --plsi-line: rgba(255, 255, 255, 0.12);
+    --plsi-hover: rgba(255, 255, 255, 0.09);
+    --plsi-accent: #a8c7fa;
+    --plsi-accent-soft: rgba(168, 199, 250, 0.16);
+    --plsi-good: #6dd58c;
+    --plsi-warn: #fcc934;
+    --plsi-bad: #f28b82;
+    --plsi-good-soft: rgba(109, 213, 140, 0.16);
+    --plsi-warn-soft: rgba(252, 201, 52, 0.16);
+    --plsi-bad-soft: rgba(242, 139, 130, 0.16);
+    --plsi-star: #fcc934;
+    --plsi-shadow: rgba(0, 0, 0, 0.6);
+  }
+}
+
+.plsi-hidden {
+  display: none !important;
+}
+
 /* ===== icon overlay badge (flag: overlay) =====
    Absolute inside the icon's parent so it takes no space in the card layout. */
 
@@ -15,7 +67,7 @@
   color: #fff;
   font-size: 10px;
   line-height: 1.3;
-  font-family: 'Google Sans Text', Roboto, Arial, sans-serif;
+  font-family: var(--plsi-font);
   text-align: left;
   white-space: nowrap;
   overflow: hidden;
@@ -50,7 +102,7 @@
   text-decoration: underline;
 }
 
-/* freshness of the update date — bright variants for the dark overlay */
+/* The badge sits on a dark strip in both themes, so it keeps the bright set. */
 .plsi-badge .plsi-fresh {
   color: #6dd58c;
 }
@@ -63,19 +115,49 @@
   color: #f28b82;
 }
 
-/* ===== info line under the card's rating (flag: inline) ===== */
+.plsi-badge .plsi-age-new {
+  color: #a8c7fa;
+  font-weight: 700;
+}
 
+.plsi-badge .plsi-age-young {
+  color: #a8c7fa;
+}
+
+/* ===== info lines under the card's rating (flag: inline) ===== */
+
+/* These lines sit on Play's page, not on the panel, so they take the colours
+   that suit the page's ground — whatever theme the system is in. */
 .plsi-inline {
+  --plsi-ink: #1f1f1f;
+  --plsi-muted: #5f6368;
+  --plsi-hover: rgba(0, 0, 0, 0.06);
+  --plsi-accent: #0b57d0;
+  --plsi-accent-soft: rgba(11, 87, 208, 0.12);
+  --plsi-good: #0f6b2e;
+  --plsi-warn: #8a4d00;
+  --plsi-bad: #b3261e;
   display: flex;
   flex-direction: column;
   gap: 1px;
   margin-top: 2px;
   font-size: 11px;
   line-height: 1.35;
-  font-family: 'Google Sans Text', Roboto, Arial, sans-serif;
-  color: #5f6368;
+  font-family: var(--plsi-font);
+  color: var(--plsi-muted);
   text-align: left;
   white-space: nowrap;
+}
+
+.plsi-ground-dark .plsi-inline {
+  --plsi-ink: #e3e3e3;
+  --plsi-muted: #9aa0a6;
+  --plsi-hover: rgba(255, 255, 255, 0.09);
+  --plsi-accent: #a8c7fa;
+  --plsi-accent-soft: rgba(168, 199, 250, 0.16);
+  --plsi-good: #6dd58c;
+  --plsi-warn: #fcc934;
+  --plsi-bad: #f28b82;
 }
 
 .plsi-inline span {
@@ -87,17 +169,57 @@
   display: none;
 }
 
-/* freshness — dark-on-light variants for the card background */
-.plsi-inline .plsi-fresh {
-  color: #1e8e3e;
+.plsi-fresh {
+  color: var(--plsi-good);
 }
 
-.plsi-inline .plsi-aging {
-  color: #b06000;
+.plsi-aging {
+  color: var(--plsi-warn);
 }
 
-.plsi-inline .plsi-stale {
-  color: #c5221f;
+.plsi-stale {
+  color: var(--plsi-bad);
+}
+
+/* How young the app is. New (a month or less) is marked by weight and a tint,
+   not by colour alone. */
+.plsi-inline .plsi-age-new,
+td.plsi-age-new {
+  color: var(--plsi-accent);
+  font-weight: 700;
+}
+
+.plsi-inline .plsi-age-new {
+  align-self: flex-start;
+  padding: 0 5px;
+  border-radius: 4px;
+  background: var(--plsi-accent-soft);
+}
+
+.plsi-inline .plsi-age-young,
+td.plsi-age-young {
+  color: var(--plsi-accent);
+}
+
+.plsi-rank {
+  display: inline-block;
+  margin-right: 5px;
+  padding: 0 4px;
+  border-radius: 4px;
+  background: var(--plsi-hover);
+  color: var(--plsi-ink);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+/* cards the panel's filter leaves out */
+.plsi-dim {
+  opacity: 0.3;
+  transition: opacity 0.15s ease;
+}
+
+.plsi-dim:hover {
+  opacity: 1;
 }
 
 /* ===== floating toggle button ===== */
@@ -117,10 +239,6 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
-.plsi-fab.plsi-hidden {
-  display: none;
-}
-
 /* ===== side panel (flag: panel) ===== */
 
 .plsi-panel {
@@ -129,14 +247,17 @@
   right: 0;
   bottom: 0;
   z-index: 2147483647;
+  box-sizing: border-box;
   width: 420px;
-  max-width: 92vw;
+  max-width: 96vw;
   display: flex;
   flex-direction: column;
-  background: #fff;
-  color: #1f1f1f;
-  font-family: 'Google Sans Text', Roboto, Arial, sans-serif;
-  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.18);
+  background: var(--plsi-surface);
+  color: var(--plsi-ink);
+  font-family: var(--plsi-font);
+  font-size: 12px;
+  line-height: 1.4;
+  box-shadow: -4px 0 16px var(--plsi-shadow);
   transform: translateX(100%);
   transition: transform 0.2s ease;
 }
@@ -145,13 +266,24 @@
   transform: translateX(0);
 }
 
+.plsi-panel *,
+.plsi-panel *::before,
+.plsi-panel *::after {
+  box-sizing: border-box;
+}
+
+.plsi-panel :focus-visible {
+  outline: 2px solid var(--plsi-accent);
+  outline-offset: 1px;
+}
+
 .plsi-panel-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
   padding: 10px 12px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid var(--plsi-line);
 }
 
 .plsi-panel-title {
@@ -164,9 +296,10 @@
   margin-left: 6px;
   padding: 1px 7px;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.08);
+  background: var(--plsi-hover);
   font-size: 11px;
   font-weight: 500;
+  font-variant-numeric: tabular-nums;
 }
 
 .plsi-panel-controls {
@@ -176,64 +309,285 @@
 }
 
 .plsi-btn {
+  display: inline-block;
   padding: 3px 8px;
-  border: 1px solid rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--plsi-line);
   border-radius: 6px;
   background: transparent;
   color: inherit;
+  font: inherit;
   font-size: 12px;
+  line-height: 1.4;
+  text-decoration: none;
+  white-space: nowrap;
   cursor: pointer;
 }
 
 .plsi-btn:hover {
-  background: rgba(0, 0, 0, 0.06);
+  background: var(--plsi-hover);
 }
+
+.plsi-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.plsi-btn-on {
+  border-color: var(--plsi-accent);
+  background: var(--plsi-accent-soft);
+  color: var(--plsi-accent);
+}
+
+.plsi-btn-main {
+  border-color: var(--plsi-accent);
+  background: var(--plsi-accent);
+  color: var(--plsi-surface);
+  font-weight: 600;
+}
+
+.plsi-btn-main:hover {
+  background: var(--plsi-accent);
+  opacity: 0.9;
+}
+
+.plsi-btn-sm {
+  padding: 1px 6px;
+  font-size: 11px;
+}
+
+.plsi-select,
+.plsi-input {
+  min-width: 0;
+  padding: 3px 6px;
+  border: 1px solid var(--plsi-line);
+  border-radius: 6px;
+  background: var(--plsi-surface);
+  color: var(--plsi-ink);
+  font: inherit;
+  font-size: 12px;
+}
+
+.plsi-input {
+  flex: 1;
+  padding: 5px 8px;
+}
+
+.plsi-link {
+  color: var(--plsi-accent);
+  text-decoration: none;
+}
+
+.plsi-link:hover {
+  text-decoration: underline;
+}
+
+.plsi-muted {
+  color: var(--plsi-faint);
+}
+
+.plsi-note {
+  color: var(--plsi-faint);
+  font-size: 11px;
+}
+
+.plsi-up {
+  color: var(--plsi-good);
+}
+
+.plsi-down {
+  color: var(--plsi-bad);
+}
+
+/* ----- tabs ----- */
 
 .plsi-tabs {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   padding: 8px 12px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid var(--plsi-line);
 }
 
 .plsi-tab {
+  position: relative;
   padding: 4px 10px;
   border: none;
   border-radius: 999px;
   background: transparent;
-  color: #5f6368;
+  color: var(--plsi-muted);
   font: inherit;
   font-size: 12px;
+  white-space: nowrap;
   cursor: pointer;
 }
 
 .plsi-tab:hover {
-  background: rgba(0, 0, 0, 0.06);
+  background: var(--plsi-hover);
 }
 
 .plsi-tab-active {
-  background: rgba(11, 87, 208, 0.12);
-  color: #0b57d0;
+  background: var(--plsi-accent-soft);
+  color: var(--plsi-accent);
   font-weight: 600;
+}
+
+/* something changed in a watched app since it was last opened */
+.plsi-tab-dot::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--plsi-bad);
 }
 
 .plsi-clear {
   margin-left: auto;
 }
 
-.plsi-btn.plsi-hidden {
-  display: none;
+/* ----- toolbar: columns, filter, export ----- */
+
+.plsi-toolbar {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--plsi-line);
+  background: var(--plsi-surface-2);
 }
+
+.plsi-checks,
+.plsi-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 4px 12px;
+  width: 100%;
+}
+
+.plsi-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.plsi-check span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plsi-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.plsi-field span {
+  color: var(--plsi-muted);
+  white-space: nowrap;
+}
+
+.plsi-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ----- what the page adds up to ----- */
+
+.plsi-summary {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--plsi-line);
+}
+
+.plsi-summary-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.plsi-summary-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.plsi-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  gap: 8px 10px;
+}
+
+.plsi-stat {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.plsi-stat b {
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plsi-stat span {
+  color: var(--plsi-faint);
+  font-size: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plsi-score {
+  flex: none;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  cursor: help;
+}
+
+.plsi-good {
+  background: var(--plsi-good-soft);
+  color: var(--plsi-good);
+}
+
+.plsi-warn {
+  background: var(--plsi-warn-soft);
+  color: var(--plsi-warn);
+}
+
+.plsi-bad {
+  background: var(--plsi-bad-soft);
+  color: var(--plsi-bad);
+}
+
+/* ----- table ----- */
 
 .plsi-panel-list {
   flex: 1;
-  overflow-y: auto;
+  overflow: auto;
 }
 
 .plsi-empty {
   padding: 24px 16px;
-  color: #9aa0a6;
+  color: var(--plsi-faint);
   font-size: 12px;
   text-align: center;
 }
@@ -243,6 +597,7 @@
   border-collapse: collapse;
   font-size: 12px;
   table-layout: fixed;
+  font-variant-numeric: tabular-nums;
 }
 
 .plsi-table th {
@@ -250,51 +605,48 @@
   top: 0;
   z-index: 1;
   padding: 6px 8px;
-  background: #f1f3f4;
+  background: var(--plsi-surface-2);
   font-size: 11px;
   font-weight: 600;
   text-align: left;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   cursor: pointer;
   user-select: none;
 }
 
 .plsi-table th:hover {
-  background: #e8eaed;
+  background: var(--plsi-surface-3);
+}
+
+.plsi-table th.plsi-col-lead {
+  cursor: default;
 }
 
 .plsi-th-active {
-  color: #0b57d0;
+  color: var(--plsi-accent);
 }
 
 .plsi-table td {
   padding: 5px 8px;
-  border-top: 1px solid rgba(0, 0, 0, 0.07);
+  border-top: 1px solid var(--plsi-line);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.plsi-col-app {
-  width: auto;
+.plsi-table .plsi-col-lead {
+  padding: 0 0 0 6px;
+  text-overflow: clip;
 }
 
 .plsi-col-num {
-  width: 58px;
   text-align: right;
 }
 
-th.plsi-col-num {
-  text-align: right;
-}
-
-.plsi-col-upd {
-  width: 70px;
-  text-align: right;
-}
-
-th.plsi-col-upd {
-  text-align: right;
+.plsi-col-text {
+  text-align: left;
 }
 
 .plsi-row {
@@ -302,7 +654,32 @@ th.plsi-col-upd {
 }
 
 .plsi-row:hover td {
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--plsi-hover);
+}
+
+.plsi-row-open td {
+  background: var(--plsi-surface-2);
+  border-top-color: transparent;
+}
+
+.plsi-more,
+.plsi-star {
+  padding: 2px 4px;
+  border: none;
+  border-radius: 4px;
+  color: var(--plsi-faint);
+  font-size: 13px;
+  line-height: 1;
+}
+
+.plsi-star {
+  flex: none;
+  margin-left: auto;
+  font-size: 15px;
+}
+
+.plsi-star-on {
+  color: var(--plsi-star);
 }
 
 .plsi-app-cell {
@@ -324,8 +701,8 @@ th.plsi-col-upd {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.08);
-  color: rgba(0, 0, 0, 0.4);
+  background: var(--plsi-hover);
+  color: var(--plsi-faint);
   font-size: 11px;
 }
 
@@ -344,139 +721,342 @@ th.plsi-col-upd {
 }
 
 .plsi-row-sub {
-  color: #9aa0a6;
+  color: var(--plsi-faint);
   font-size: 10px;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.plsi-row-news {
+  color: var(--plsi-bad);
+  font-weight: 600;
+}
+
+.plsi-row-news::before {
+  content: '● ';
 }
 
 /* the app whose page you are on, pinned above the rails it is compared with */
 .plsi-row-self td {
-  background: rgba(11, 87, 208, 0.06);
+  background: var(--plsi-accent-soft);
 }
 
 .plsi-row-self .plsi-row-sub {
-  color: #0b57d0;
+  color: var(--plsi-accent);
 }
 
 .plsi-row-muted {
-  color: #9aa0a6;
+  color: var(--plsi-faint);
 }
 
 .plsi-row-error {
-  color: #c5221f;
+  color: var(--plsi-bad);
 }
 
-/* freshness in panel table — darker variants for the light background */
-td.plsi-fresh {
-  color: #1e8e3e;
+/* five thin columns, 1★ on the left */
+.plsi-mini {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 1px;
+  height: 14px;
+  margin-right: 6px;
+  vertical-align: -2px;
 }
 
-td.plsi-aging {
-  color: #b06000;
+.plsi-mini i {
+  display: block;
+  width: 4px;
+  border-radius: 1px 1px 0 0;
+  background: var(--plsi-faint);
 }
 
-td.plsi-stale {
-  color: #c5221f;
+.plsi-mini .plsi-mini-low {
+  background: var(--plsi-bad);
 }
 
-@media (prefers-color-scheme: dark) {
-  .plsi-inline {
-    color: #9aa0a6;
-  }
+.plsi-chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
 
-  .plsi-inline .plsi-fresh {
-    color: #6dd58c;
-  }
+.plsi-chip {
+  padding: 0 6px;
+  border: 1px solid var(--plsi-line);
+  border-radius: 999px;
+  color: var(--plsi-muted);
+  font-size: 10px;
+  line-height: 16px;
+  white-space: nowrap;
+}
 
-  .plsi-inline .plsi-aging {
-    color: #fcc934;
-  }
+.plsi-chip-paid {
+  border-color: transparent;
+  background: var(--plsi-accent-soft);
+  color: var(--plsi-accent);
+  font-weight: 600;
+}
 
-  .plsi-inline .plsi-stale {
-    color: #f28b82;
-  }
+.plsi-chip-iap {
+  border-color: transparent;
+  background: var(--plsi-good-soft);
+  color: var(--plsi-good);
+}
 
-  .plsi-panel {
-    background: #1f1f1f;
-    color: #e3e3e3;
-    box-shadow: -4px 0 16px rgba(0, 0, 0, 0.6);
-  }
+.plsi-chip-ads {
+  border-color: transparent;
+  background: var(--plsi-warn-soft);
+  color: var(--plsi-warn);
+}
 
-  .plsi-panel-header {
-    border-bottom-color: rgba(255, 255, 255, 0.12);
-  }
+/* ----- details drawer ----- */
 
-  .plsi-panel-count {
-    background: rgba(255, 255, 255, 0.12);
-  }
+.plsi-table .plsi-drawer-row td {
+  padding: 0;
+  border-top: none;
+  white-space: normal;
+  overflow: visible;
+}
 
-  .plsi-tabs {
-    border-bottom-color: rgba(255, 255, 255, 0.12);
-  }
+.plsi-drawer {
+  position: sticky;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: min(560px, 96vw);
+  padding: 10px 12px 14px 12px;
+  background: var(--plsi-surface-2);
+  border-bottom: 1px solid var(--plsi-line);
+  font-variant-numeric: tabular-nums;
+}
 
-  .plsi-tab {
-    color: #9aa0a6;
-  }
+.plsi-sec {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
 
-  .plsi-tab:hover {
-    background: rgba(255, 255, 255, 0.1);
-  }
+.plsi-sec-title {
+  color: var(--plsi-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
 
-  .plsi-tab-active {
-    background: rgba(168, 199, 250, 0.16);
-    color: #a8c7fa;
-  }
+.plsi-kv {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
 
-  .plsi-row-self td {
-    background: rgba(168, 199, 250, 0.1);
-  }
+.plsi-k {
+  flex: none;
+  width: 68px;
+  color: var(--plsi-faint);
+}
 
-  .plsi-row-self .plsi-row-sub {
-    color: #a8c7fa;
-  }
+.plsi-v {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
 
-  .plsi-btn {
-    border-color: rgba(255, 255, 255, 0.25);
-  }
+.plsi-text {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
 
-  .plsi-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-  }
+.plsi-spark {
+  display: block;
+  color: var(--plsi-accent);
+}
 
-  .plsi-table th {
-    background: #2d2d2d;
-  }
+.plsi-spark polyline {
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
 
-  .plsi-table th:hover {
-    background: #3c3c3c;
-  }
+.plsi-spark circle {
+  fill: currentColor;
+}
 
-  .plsi-th-active {
-    color: #a8c7fa;
-  }
+.plsi-bar-row {
+  display: grid;
+  grid-template-columns: 24px 1fr 92px;
+  align-items: center;
+  gap: 8px;
+}
 
-  .plsi-table td {
-    border-top-color: rgba(255, 255, 255, 0.1);
-  }
+.plsi-bar-label {
+  color: var(--plsi-muted);
+}
 
-  .plsi-row:hover td {
-    background: rgba(255, 255, 255, 0.07);
-  }
+.plsi-bar-track {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--plsi-hover);
+  overflow: hidden;
+}
 
-  .plsi-row-noicon {
-    background: rgba(255, 255, 255, 0.12);
-    color: rgba(255, 255, 255, 0.4);
-  }
+.plsi-bar-track i {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  background: var(--plsi-faint);
+}
 
-  td.plsi-fresh {
-    color: #6dd58c;
-  }
+.plsi-bar-track .plsi-bar-low {
+  background: var(--plsi-bad);
+}
 
-  td.plsi-aging {
-    color: #fcc934;
-  }
+.plsi-bar-num {
+  color: var(--plsi-muted);
+  font-size: 11px;
+  text-align: right;
+  white-space: nowrap;
+}
 
-  td.plsi-stale {
-    color: #f28b82;
+.plsi-shots {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+  padding-bottom: 4px;
+  overflow-x: auto;
+}
+
+.plsi-shots img {
+  flex: none;
+  height: 150px;
+  border-radius: 6px;
+  background: var(--plsi-hover);
+}
+
+.plsi-out {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.plsi-out:empty {
+  display: none;
+}
+
+.plsi-sub-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.plsi-table .plsi-sub-table th,
+.plsi-table .plsi-sub-table td {
+  position: static;
+  padding: 3px 6px 3px 0;
+  border-top: 1px solid var(--plsi-line);
+  background: transparent;
+  text-align: left;
+  white-space: nowrap;
+  cursor: default;
+}
+
+.plsi-table .plsi-sub-table th {
+  border-top: none;
+  color: var(--plsi-faint);
+  font-weight: 600;
+}
+
+.plsi-reviews {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+.plsi-reviews:empty {
+  display: none;
+}
+
+.plsi-review {
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: var(--plsi-surface);
+}
+
+.plsi-review-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 2px;
+  font-size: 11px;
+}
+
+.plsi-review-stars {
+  color: var(--plsi-star);
+  letter-spacing: 1px;
+}
+
+.plsi-terms:empty {
+  display: none;
+}
+
+/* ----- keywords ----- */
+
+.plsi-kw {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  overflow-y: auto;
+}
+
+.plsi-kw-form {
+  display: flex;
+  gap: 6px;
+}
+
+.plsi-kw-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.plsi-kw-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+  border-top: 1px solid var(--plsi-line);
+}
+
+.plsi-kw-term {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plsi-kw-row .plsi-muted {
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plsi-panel,
+  .plsi-dim {
+    transition: none;
   }
 }

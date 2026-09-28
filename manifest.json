@@ -2,9 +2,13 @@
   "manifest_version": 3,
   "name": "PlayLens – App Stats for Google Play",
   "short_name": "PlayLens",
-  "version": "1.6.1",
-  "description": "Show download counts, review totals and last-updated dates on every app card in Google Play search, collection and developer lists.",
-  "permissions": ["storage", "clipboardWrite"],
+  "version": "2.0.0",
+  "description": "App statistics on Google Play lists: exact installs, app age, ratings spread, prices, a watchlist, keyword ideas and CSV export.",
+  "permissions": ["storage", "clipboardWrite", "alarms"],
+  "host_permissions": ["https://play.google.com/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
@@ -26,7 +30,7 @@
   "content_scripts": [
     {
       "matches": ["https://play.google.com/*"],
-      "js": ["content.js"],
+      "js": ["core.js", "content.js"],
       "css": ["styles.css"],
       "run_at": "document_idle"
     }

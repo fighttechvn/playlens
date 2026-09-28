@@ -106,9 +106,35 @@
     .switch input:checked + .slider::before { transform: translateX(20px); }
     .actions {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       gap: 10px;
       margin-top: 10px;
+    }
+    .row.field { cursor: default; }
+    input[type='text'] {
+      width: 100%;
+      margin-top: 8px;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--fg);
+      font: inherit;
+      font-size: 13px;
+      letter-spacing: 0.04em;
+    }
+    input[type='text']:focus-visible,
+    button:focus-visible,
+    .switch input:focus-visible + .slider {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    code {
+      padding: 0 4px;
+      border-radius: 4px;
+      background: var(--border);
+      font-size: 12px;
     }
     button {
       padding: 8px 14px;
@@ -121,11 +147,13 @@
     }
     button:hover { background: var(--card); }
     .status {
+      min-height: 19px;
+      margin-top: 6px;
       font-size: 12.5px;
       color: var(--muted);
     }
     .foot {
-      margin-top: 28px;
+      margin-top: 16px;
       font-size: 12.5px;
       color: var(--muted);
     }
@@ -156,7 +184,7 @@
       <label class="row">
         <span class="text">
           <span class="name">Panel danh sách bên phải</span>
-          <div class="desc">Bảng tổng hợp mọi app đã quét (sort theo cột, click hàng mở app, copy CSV). Mở/đóng bằng nút 📊 ở mép phải.</div>
+          <div class="desc">Bảng mọi app trên trang: chọn cột, lọc, sắp xếp, mở chi tiết từng app (▸), xuất CSV/JSON. Có thêm tab Watchlist và Keywords. Mở/đóng bằng nút 📊 ở mép phải.</div>
         </span>
         <span class="switch"><input type="checkbox" id="panel" /><span class="slider"></span></span>
       </label>
@@ -176,14 +204,72 @@
       </label>
     </div>
 
+    <h2>Số liệu trên card</h2>
+    <div class="card">
+      <label class="row">
+        <span class="text">
+          <span class="name">Lượt cài chính xác</span>
+          <div class="desc">Hiện <code>49.2M</code> thay cho mốc <code>10M+</code> của Play. Rê chuột vào để xem con số đầy đủ.</div>
+        </span>
+        <span class="switch"><input type="checkbox" id="exact" /><span class="slider"></span></span>
+      </label>
+      <label class="row">
+        <span class="text">
+          <span class="name">Tuổi app và lượt cài mỗi ngày</span>
+          <div class="desc">Thêm dòng <code>8mo old · ~11K/day</code>. App ra mắt trong 30 ngày được tô đậm, trong 1 năm được tô màu.</div>
+        </span>
+        <span class="switch"><input type="checkbox" id="age" /><span class="slider"></span></span>
+      </label>
+      <label class="row">
+        <span class="text">
+          <span class="name">Số thứ hạng trên trang tìm kiếm</span>
+          <div class="desc">Gắn <code>#1</code>, <code>#2</code>… vào từng kết quả tìm kiếm, kèm cột thứ hạng và từ khóa trong bảng và file xuất.</div>
+        </span>
+        <span class="switch"><input type="checkbox" id="rank" /><span class="slider"></span></span>
+      </label>
+    </div>
+
+    <h2>Theo dõi theo thời gian</h2>
+    <div class="card">
+      <label class="row">
+        <span class="text">
+          <span class="name">Lưu số liệu mỗi ngày</span>
+          <div class="desc">Mỗi app bạn gặp được ghi lại tối đa một lần một ngày (lượt cài, số đánh giá, điểm). Từ lần thứ hai trở đi, PlayLens tính được lượt cài thực tế mỗi ngày. Chỉ lưu trên máy bạn.</div>
+        </span>
+        <span class="switch"><input type="checkbox" id="history" /><span class="slider"></span></span>
+      </label>
+      <label class="row">
+        <span class="text">
+          <span class="name">Tự cập nhật Watchlist ở nền</span>
+          <div class="desc">Khoảng 6 giờ một lần, PlayLens đọc lại trang Play của các app trong Watchlist, kể cả khi không mở tab Play nào. Watchlist trống thì không có yêu cầu nào được gửi. Số trên biểu tượng tiện ích là số app vừa có thay đổi.</div>
+        </span>
+        <span class="switch"><input type="checkbox" id="bgRefresh" /><span class="slider"></span></span>
+      </label>
+    </div>
+
+    <h2>So sánh theo quốc gia</h2>
+    <div class="card">
+      <div class="row field">
+        <span class="text">
+          <label class="name" for="countries">Các quốc gia</label>
+          <div class="desc">Mã 2 chữ cái, cách nhau bằng dấu phẩy, tối đa 8. Dùng cho nút <b>Compare countries</b> và tab Keywords. Mỗi quốc gia là một yêu cầu tới Play, chỉ gửi khi bạn bấm.</div>
+          <input type="text" id="countries" spellcheck="false" autocomplete="off" placeholder="US, GB, DE, JP, VN" />
+          <div class="status" id="countriesStatus"></div>
+        </span>
+      </div>
+    </div>
+
     <h2>Dữ liệu</h2>
     <div class="actions">
       <button id="clearCache">Xóa cache dữ liệu app</button>
       <button id="clearRecent">Xóa danh sách Recent</button>
-      <span class="status" id="status"></span>
+      <button id="clearHistory">Xóa lịch sử số liệu</button>
+      <button id="clearWatch">Xóa Watchlist</button>
     </div>
+    <div class="status" id="status" role="status"></div>
+    <p class="foot" id="usage"></p>
     <p class="foot">
-      Dữ liệu app (downloads / review / ngày update) được cache 12 giờ trong trình duyệt.
+      Dữ liệu app được cache 12 giờ trong trình duyệt. Mọi thứ PlayLens lưu đều nằm trên máy bạn; tiện ích chỉ gửi yêu cầu tới <code>play.google.com</code>.
       Mã nguồn: <a href="https://github.com/fighttechvn/playlens" target="_blank" rel="noopener">github.com/fighttechvn/playlens</a>
     </p>
   </div>

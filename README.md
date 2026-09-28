@@ -2,29 +2,46 @@
 
 **PlayLens – App Stats for Google Play**
 
-English | [Tiếng Việt](README.vi.md) · [Landing page](https://fighttechvn.github.io/playlens/)
+English | [Tiếng Việt](README.vi.md) · [Chrome Web Store](https://chromewebstore.google.com/detail/playlens-%E2%80%93-app-stats-for/hnhlkgnfbcijmnaaclpliogmmnflekko) · [Landing page](https://fighttechvn.github.io/playlens/)
 
-Chrome extension that shows **⬇ downloads · rating★ + review count · ⟳ last-updated date** for every app on Google Play list pages (developer pages, collections/clusters, search, home) — no more opening apps one by one.
+Chrome extension that puts **exact installs · rating + number of ratings · last-updated date · app age · installs per day** on every app of a Google Play list page (search, developer pages, collections, home, the rails of an app page) — and a side panel to compare, follow and export them.
 
 ![PlayLens on a Google Play search results page](docs/assets/demo.png)
 
-Three display modes, each toggleable independently via feature flags:
+## What it does
 
-1. **Icon overlay badge** — a compact info strip on the bottom of each app icon (zero layout shift). Automatically hidden while mode 2 is on, so the same numbers never appear twice on one card.
-2. **Inline under the rating** — a small line (`⬇100M+ · 824.1K rv` + `⟳ update date`, color-coded) inserted right below each card's own rating.
-3. **Side panel** — a fixed panel on the right rendered as a **table**: App (icon + name) · ⬇ downloads · ★ rating · Rv reviews · Updated (`d/M/yy`, freshness-colored). **Click a column header to sort** (click again to reverse, ▲/▼ indicator); click a row to open the app. A **CSV** button copies the whole list to the clipboard. Toggle with the floating 📊 button on the right edge; the open state is remembered.
+**On the cards**
 
-The panel has two tabs:
+- **Info lines under the rating** — `#2 ⬇49.2M · 813K rv`, `⟳ Sep 23, 2026` (green ≤ 6 months, amber ≤ 18, red older), `12y old · ~11.1K/day`. Apps released in the last 30 days are set in bold on a tint, those under a year in colour.
+- **Icon overlay badge** — the same numbers as a strip on the icon, for those who prefer it (hidden while the info lines are on, so nothing shows twice).
+- **Rank number** on search results (`#1`, `#2`…), following the cards as they stand on the page.
 
-- **This page** — every app card found on the page you are on. On an app's own page that means the *Similar apps* and *More by …* rails, with the app you are looking at pinned to the top of the table so you can compare it against them.
-- **Recent** — apps whose detail page you opened, newest first (up to 60), each with the time since you saw it. The list is stored on your own device and survives restarts; **Clear** empties it, and the whole feature can be switched off.
+**In the side panel** (📊 button on the right edge)
+
+| Tab | What is in it |
+|---|---|
+| **This page** | A table of every app on the page. Click a header to sort, **Columns** to choose what to show, **Filter** to narrow it down (cards left out are dimmed on the page too), **Export** to copy or download CSV / JSON with all 36 fields. On an app's own page the app itself is pinned on top of its *Similar apps*. |
+| **Recent** | Apps whose page you opened, newest first (up to 60). |
+| **Watchlist** | Apps you starred (☆). Shows what changed since you last looked — version, name, price, rating — and the installs per day measured from the daily record. |
+| **Keywords** | Play's own search suggestions for a word (optionally followed by each letter a–z), each scored for how open it looks. |
+
+Above the table, a **summary**: on a search page the first ten results (total and median installs, median age and rating, share with purchases / ads, share not updated for 18 months) and an *Open / Contested / Crowded* verdict; on a developer page the whole portfolio.
+
+**▸ Details of one app** — exact installs next to Play's bucket, release date, installs per day (since launch and measured), ratings per install, the spread of 1–5★ with the share of 1–2★, price / in-app purchases / ads, category, version, minimum Android, data safety labels, developer email and website (with a copy button), store screenshots, links to AppBrain, APKMirror and the App Store. On request: **Compare countries** (one request each) and **Low-star reviews** — the latest 1–3★ with the words that come up most, plus an export of reviews filtered by stars and date. Reviewer names are left out on purpose.
+
+**In the background** — about every six hours the service worker re-reads the pages of the apps on the Watchlist and puts the number of changed apps on the toolbar icon. Nothing is requested while the Watchlist is empty, and it can be switched off.
+
+What it does not do: estimate revenue. That cannot be read from public pages, so PlayLens does not guess.
 
 ## Install
+
+[**Add to Chrome from the Chrome Web Store**](https://chromewebstore.google.com/detail/playlens-%E2%80%93-app-stats-for/hnhlkgnfbcijmnaaclpliogmmnflekko) — then open any Google Play list page. Click the extension icon on the toolbar to adjust flags.
+
+To run it from source instead:
 
 1. [Download `playlens.zip`](https://github.com/fighttechvn/playlens/releases/latest/download/playlens.zip) and unzip it (or clone this repo).
 2. Open `chrome://extensions` and enable **Developer mode**.
 3. Click **Load unpacked** and pick the folder.
-4. Open any Google Play list page. Click the extension icon on the toolbar to adjust flags.
 
 ## Packaging
 
@@ -36,9 +53,7 @@ Creates `dist/playlens-v<version>.zip` (version read from `manifest.json`, runti
 
 ## Publishing
 
-The first Chrome Web Store submission is manual — the API can't create listing text or upload screenshots. Everything to paste in is in [store/listing.md](store/listing.md).
-
-Once the item exists, version updates are one command:
+The extension is live as item `hnhlkgnfbcijmnaaclpliogmmnflekko`; the listing text it was submitted with is in [store/listing.md](store/listing.md). The first submission had to be manual — the API can't create listing text or upload screenshots — but version updates are now one command:
 
 ```bash
 ./tools/publish.sh              # upload as a draft
@@ -53,39 +68,54 @@ Setup for either path (OAuth client, refresh token, item ID) is in [store/api-pu
 
 - `main` — releases (landing page in `docs/` published via GitHub Pages)
 - `develop` — day-to-day development
-- `uat` — merged from `develop` for testing; every push/merge to `uat` triggers GitHub Actions to run `build.sh` and attach the zip as a run artifact.
+- `uat` — merged from `develop` for testing; every push/merge to `uat` triggers GitHub Actions to run `build.sh`, attach the zip as a run artifact, and refresh the rolling **`uat` pre-release** so testers have a link that needs no GitHub login:
 
-## Feature flags (popup / settings page)
+  ```
+  https://github.com/fighttechvn/playlens/releases/download/uat/playlens-uat.zip
+  ```
+
+  The tag is recreated on each build, so the link always serves the newest uat package. Pre-releases are excluded from the Chrome Web Store workflow — only a real `vX.Y.Z` release ships to the store.
+
+## Settings (popup / settings page)
 
 | Flag | Default | Meaning |
 |---|---|---|
 | `overlay` | on | Badge overlaid on each icon (suppressed while `inline` is on) |
-| `inline` | on | Info line under each card's own rating |
-| `panel` | on | Right-side list panel (with the 📊 button) |
-| `panelOpen` | off | Auto-open the panel on page load |
-| `recent` | on | Remember apps whose detail page you open, in the panel's Recent tab |
+| `inline` | on | Info lines under each card's own rating |
+| `panel` | on | Right-side panel (with the 📊 button) |
+| `panelOpen` | off | Open the panel on page load |
+| `recent` | on | Remember apps whose detail page you open, in the Recent tab |
+| `exact` | on | Exact install count (`49.2M`) instead of Play's bucket (`10M+`) |
+| `age` | on | App age and installs per day on the cards |
+| `rank` | on | Position number on search result cards, in the table and in exports |
+| `history` | on | Keep one snapshot a day of every app seen, to measure growth |
+| `bgRefresh` | on | Update the Watchlist in the background, about every six hours |
 
-Flags live in `chrome.storage.sync` and apply **instantly** (the content script listens to `storage.onChanged` — no page reload).
+Also stored: `cols` (the columns of the table) and `countries` (two-letter codes for *Compare countries* and the Keywords tab, up to 8; default `US, GB, DE, JP, VN`).
 
-Besides the quick popup there is a **full settings page** (`options.html`): right-click the extension icon → *Options*, or click "⚙ Open full settings" in the popup — per-flag toggles with detailed descriptions plus a **Clear app data cache** button.
+Settings live in `chrome.storage.sync` and apply **instantly** (the content script listens to `storage.onChanged` — no page reload).
+
+Besides the quick popup there is a **full settings page** (`options.html`): right-click the extension icon → *Options*, or click "⚙ Open full settings" in the popup. It also shows how much is stored and has a button to clear each kind of data: cache, Recent, history, Watchlist.
 
 ## How it works
 
-- The content script scans every `details?id=...` anchor that contains an image (app card). For each app it fetches the detail page with `hl=en&gl=US` (stable labels to parse) and extracts:
-  - **App name + rating + review count** — parsed from JSON-LD (`SoftwareApplication`): canonical name and **exact** review counts (e.g. 53,623 → `53.6K rv`)
-  - **Downloads** — regex around the `Downloads` label (e.g. `1M+`)
-  - **Updated on** — the update date, color-coded by freshness: green ≤ 6 months, amber ≤ 18 months, red older
-- Badges wait for lazy-loaded icons to finish loading before attaching (avoids floating badges on zero-height images); corner radius is copied from the icon.
-- Opening an app's detail page adds it to the **Recent** list in `chrome.storage.local` (60 entries, newest first, deduplicated by package). It never leaves the browser; clear it from the panel or the options page.
-- Overlay badges are measured against the icon box, not its container, so they stay on the icon in list rows (detail-page rails) as well as grid cards; on icons under 96px the strip keeps only the download count and a short date, since the card already prints the rating next to the icon.
-- A search result puts a wide screenshot before the app icon, so the badge picks the square image (`=s<size>` crop) rather than the first one. Play also re-renders search cards after they appear, dropping the decorations and the positioning we set — every re-scan puts them back.
-- 12h cache in `chrome.storage.local`, at most 3 detail fetches in parallel. Play is an SPA → a MutationObserver re-scans on scroll/navigation; changing pages resets the panel list.
-- play.google.com enforces a **Trusted Types** CSP (blocks `innerHTML` even for content scripts) → all UI is built with `createElement`/`textContent`.
+- `core.js` holds everything that can run without a page — parsing, formatting, scoring — and is shared by the content script and the service worker. `node tools/test-core.js` checks it against live Play pages.
+- The content script scans every `details?id=...` anchor that contains an image (app card). For each app it fetches the detail page with `hl=en&gl=US` (stable labels) and reads the listing block of the page's `AF_initDataCallback` data: exact installs, rating histogram, release date, price, purchases, ads, category, version, developer contact, screenshots, data safety.
+- Reviews and search suggestions come from the same `batchexecute` endpoint the Play site itself calls. They are requested only when you ask.
+- The **opportunity score** of a search term is `0.35 × demand + 0.30 × monetization + 0.25 × competition + 0.10 × weakness`, each from the first ten results: ≥ 60 *Open*, 45–59 *Contested*, below *Crowded*. It is a way to sort ideas, not a forecast.
+- 12h cache in `chrome.storage.local`, at most 3 detail fetches in parallel. Stored under `app:<id>` (cache), `h:<id>` (daily snapshots, 200 at most), `w:<id>` (watchlist entry), `kw:<id>` (positions of a watched app), `cc:<id>:<gl>` (country comparison).
+- Play is a single-page app, which takes some care:
+  - It redraws search cards a moment after they appear, dropping our nodes and marks — every re-scan puts them back on the card that owns them.
+  - It keeps the page you came from in the document, hidden, so that Back is instant. Cards that are not shown (`checkVisibility()`) are left alone, apps no longer on the page leave the table, and rank is the order of the cards on screen.
+- The info lines sit on Play's page, so their colours follow the page's ground; the panel follows the system theme.
+- play.google.com enforces a **Trusted Types** CSP (blocks `innerHTML` even for content scripts) → all UI is built with `createElement`/`textContent`, SVG with `createElementNS`.
 
 ## Limitations
 
-- Parsing relies on Play's HTML structure (JSON-LD + the `Downloads` / `Updated on` labels). If Google changes the markup, update the regexes in `content.js` (`fetchAppInfo`).
-- Apps without a rating (too new) only show downloads + update date.
+- Parsing relies on the position of fields in Play's page data. If Google moves them, `node tools/test-core.js` shows which ones broke; the paths are in `core.js` (`parseDetail`).
+- Installs per day *since launch* is an average over the app's whole life. The *measured* figure needs at least two daily snapshots of the app, so it appears from the second day on.
+- Apps without a rating (too new) only show installs and dates.
+- The link to AppBrain is built from the package name; whether AppBrain has a page for it is up to AppBrain.
 
 ## License
 

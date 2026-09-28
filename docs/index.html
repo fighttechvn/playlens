@@ -4,20 +4,20 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>PlayLens — App Stats for Google Play</title>
-  <meta name="description" content="Free Chrome extension showing download counts, exact review counts and last-updated dates on every app card in Google Play search, developer and collection lists." />
+  <meta name="description" content="Free Chrome extension showing exact installs, ratings, app age and last-updated dates on every app card in Google Play search, developer and collection lists." />
   <link rel="canonical" href="https://fighttechvn.github.io/playlens/" />
   <meta name="author" content="FightTech VN" />
 
   <meta property="og:title" content="PlayLens — App Stats for Google Play" />
-  <meta property="og:description" content="See downloads, exact review counts and last-updated dates for every app right on Google Play list pages. Free, open source, no tracking." />
+  <meta property="og:description" content="See exact installs, ratings, app age and last-updated dates for every app right on Google Play list pages. Free, open source, no tracking." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://fighttechvn.github.io/playlens/" />
   <meta property="og:image" content="https://fighttechvn.github.io/playlens/assets/demo.png" />
-  <meta property="og:image:alt" content="Google Play search results with download counts, review counts and update dates on every app card, plus a sortable side panel" />
+  <meta property="og:image:alt" content="Google Play search results with install counts, ratings and update dates under every app card, plus a sortable side panel" />
   <meta property="og:site_name" content="PlayLens" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="PlayLens — App Stats for Google Play" />
-  <meta name="twitter:description" content="Downloads, exact review counts and update dates on every Google Play app card. Free Chrome extension." />
+  <meta name="twitter:description" content="Exact installs, ratings, app age and update dates on every Google Play app card. Free Chrome extension." />
   <meta name="twitter:image" content="https://fighttechvn.github.io/playlens/assets/demo.png" />
 
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔎</text></svg>" />
@@ -30,11 +30,12 @@
     "applicationCategory": "BrowserApplication",
     "applicationSubCategory": "Chrome Extension",
     "operatingSystem": "Chrome, Edge, Brave, any Chromium browser",
-    "description": "Chrome extension that shows download counts, exact review counts and last-updated dates for every app card on Google Play list pages, with a sortable side panel and CSV export.",
+    "description": "Chrome extension that shows exact installs, ratings, app age and last-updated dates for every app on Google Play list pages, with a side panel to compare, follow and export them.",
     "url": "https://fighttechvn.github.io/playlens/",
-    "downloadUrl": "https://github.com/fighttechvn/playlens/releases/latest/download/playlens.zip",
+    "installUrl": "https://chromewebstore.google.com/detail/playlens-%E2%80%93-app-stats-for/hnhlkgnfbcijmnaaclpliogmmnflekko",
+    "downloadUrl": "https://chromewebstore.google.com/detail/playlens-%E2%80%93-app-stats-for/hnhlkgnfbcijmnaaclpliogmmnflekko",
     "screenshot": "https://fighttechvn.github.io/playlens/assets/demo.png",
-    "softwareVersion": "1.6.1",
+    "softwareVersion": "2.0.0",
     "license": "https://opensource.org/licenses/MIT",
     "isAccessibleForFree": true,
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
@@ -44,13 +45,16 @@
       "url": "https://github.com/fighttechvn"
     },
     "featureList": [
-      "Download count on every Google Play app card",
-      "Exact review counts parsed from each app's detail page",
-      "Last-updated date, colour-coded by freshness",
-      "Sortable side panel with CSV export",
-      "Recent tab: the apps you opened, kept on your own device",
-      "Works on developer pages, search results, collections and app pages",
-      "No account, no analytics, no external servers"
+      "Exact install count, rating and last-updated date on every Google Play app card",
+      "App age and installs per day, with new releases marked",
+      "Rank numbers on search results",
+      "Sortable side panel with column chooser, filters, CSV and JSON export",
+      "Details per app: rating spread, price, developer contact, data safety, screenshots",
+      "Watchlist with change detection and measured growth",
+      "Low-star review viewer and review export",
+      "Keyword suggestions with an opportunity score",
+      "Country comparison and developer portfolio summary",
+      "No account, no analytics, no servers of our own"
     ]
   }
   </script>
@@ -171,6 +175,16 @@
       font-size: 0.9em;
     }
 
+    .install-manual { margin-top: 16px; }
+    .install-manual > summary {
+      cursor: pointer;
+      font-size: 13.5px;
+      color: var(--muted);
+      list-style-position: outside;
+    }
+    .install-manual > summary::marker { color: var(--accent); }
+    .install-manual ol.install { margin-top: 10px; font-size: 13.5px; color: var(--muted); }
+
     .faq { display: grid; gap: 8px; }
     .faq details {
       background: var(--card);
@@ -209,68 +223,81 @@
     <div class="logo">🔎</div>
     <h1><span class="brand">PlayLens</span><br />See every app's stats, right on the list.</h1>
     <p class="tagline">
-      Free open-source Chrome extension that shows <strong>download counts</strong>,
-      <strong>review counts</strong> and <strong>last-updated dates</strong> for every app
+      Free open-source Chrome extension that shows <strong>exact installs</strong>,
+      <strong>ratings</strong>, <strong>app age</strong> and <strong>last-updated dates</strong> for every app
       directly on Google&nbsp;Play list pages — developer pages, search results, collections.
-      No more opening apps one by one.
+      Compare, follow and export them from one side panel.
     </p>
     <div class="cta">
-      <a class="btn btn-primary" href="https://github.com/fighttechvn/playlens/releases/latest/download/playlens.zip">⬇ Download for Chrome</a>
+      <a class="btn btn-primary" href="https://chromewebstore.google.com/detail/playlens-%E2%80%93-app-stats-for/hnhlkgnfbcijmnaaclpliogmmnflekko">⬇ Add to Chrome — free</a>
       <a class="btn btn-ghost" href="https://github.com/fighttechvn/playlens">★ View on GitHub</a>
     </div>
-    <p class="note">MIT licensed · no tracking · all data stays in your browser</p>
+    <p class="note">
+      On the Chrome Web Store · MIT licensed · no tracking · all data stays in your browser<br />
+      Prefer to install it yourself? <a href="https://github.com/fighttechvn/playlens/releases/latest/download/playlens.zip">Download the zip</a>.
+    </p>
 
     <div class="shot">
       <img
         src="assets/demo.png"
-        alt="PlayLens on a Google Play search results page: download/review badges on every app card, info lines under each rating, and the sortable side panel listing 30 apps"
+        alt="PlayLens on a Google Play search results page: rank, installs, ratings and update date under every app card, and the side panel with a summary of the first ten results and a sortable table"
         loading="lazy"
       />
     </div>
   </header>
 
   <section class="wrap">
-    <h2>Three views, your choice</h2>
+    <h2>What you get</h2>
     <div class="grid">
       <div class="feature">
-        <div class="ico">🏷️</div>
-        <h3>Icon overlay badge</h3>
-        <p>A compact strip on the bottom of each app icon — installs, rating × review count and update date. Zero layout shift, and it steps aside automatically when the inline line is on.</p>
+        <div class="ico">📝</div>
+        <h3>Numbers on every card</h3>
+        <p>Exact installs (49.2M, not “10M+”), number of ratings, update date colour-coded by freshness, app age and installs per day — right under each card's own rating, or as a strip on the icon.</p>
       </div>
       <div class="feature">
-        <div class="ico">📝</div>
-        <h3>Inline under the rating</h3>
-        <p>An extra info line right below each card's own rating, styled to match Play. Update dates are color-coded: green ≤ 6 months, amber ≤ 18, red older.</p>
+        <div class="ico">🏁</div>
+        <h3>Rank on search results</h3>
+        <p>Each result carries its position, #1, #2, #3… The table and the exports keep it together with the search term.</p>
       </div>
       <div class="feature">
         <div class="ico">📊</div>
-        <h3>Sortable side panel</h3>
-        <p>A table of every scanned app — sort by downloads, rating, reviews or update date; click a row to open the app; export the list as CSV.</p>
-      </div>
-      <div class="feature">
-        <div class="ico">🕘</div>
-        <h3>Recent apps, remembered</h3>
-        <p>Every app whose page you open is saved to the panel's Recent tab with its numbers — up to 60, newest first, on your device only. Clear it whenever you like.</p>
+        <h3>Side panel</h3>
+        <p>A table of every app on the page: sort, choose columns, filter by installs, rating, age or freshness, and export CSV or JSON with all fields.</p>
       </div>
       <div class="feature">
         <div class="ico">🔍</div>
-        <h3>App pages too</h3>
-        <p>On an app's own page the <em>Similar apps</em> and <em>More by …</em> rails go into the same table, with the app you are reading pinned on top to compare against.</p>
+        <h3>Details of one app</h3>
+        <p>Rating spread with the share of 1–2★, price and in-app purchases, data safety, developer email and website, store screenshots, and a comparison across countries.</p>
+      </div>
+      <div class="feature">
+        <div class="ico">⭐</div>
+        <h3>Watchlist</h3>
+        <p>Star an app to follow it. PlayLens notes changes of version, name, price and rating, and measures installs per day from a daily record kept on your device.</p>
+      </div>
+      <div class="feature">
+        <div class="ico">💬</div>
+        <h3>Low-star reviews</h3>
+        <p>The latest 1–3★ reviews of an app with the words that come up most, and an export by stars and date. Reviewer names are left out.</p>
+      </div>
+      <div class="feature">
+        <div class="ico">🔑</div>
+        <h3>Keyword ideas</h3>
+        <p>Play's own search suggestions for a word, each scored from its first ten results: Open, Contested or Crowded.</p>
+      </div>
+      <div class="feature">
+        <div class="ico">🏢</div>
+        <h3>Developer pages</h3>
+        <p>The whole portfolio in one line: total and median installs, average rating, how many apps were updated in the last 90 days.</p>
       </div>
       <div class="feature">
         <div class="ico">⚙️</div>
-        <h3>Feature flags</h3>
-        <p>Every view can be toggled independently from the popup or the full settings page. Changes apply instantly — no page reload.</p>
-      </div>
-      <div class="feature">
-        <div class="ico">🎯</div>
-        <h3>Exact review counts</h3>
-        <p>Data is parsed from each app's own detail page (JSON-LD), so review counts are exact — 824.1K, not "824K-ish".</p>
+        <h3>Your choice</h3>
+        <p>Every part can be switched on or off from the popup or the settings page. Changes apply instantly — no page reload.</p>
       </div>
       <div class="feature">
         <div class="ico">🔒</div>
         <h3>Private by design</h3>
-        <p>No account, no analytics, no external servers. Fetches go straight to play.google.com and results are cached 12h locally.</p>
+        <p>No account, no analytics, no servers of our own. Requests go straight to play.google.com and everything stored stays on your device.</p>
       </div>
     </div>
   </section>
@@ -278,11 +305,18 @@
   <section class="wrap">
     <h2>Install in 30 seconds</h2>
     <ol class="install">
-      <li><a href="https://github.com/fighttechvn/playlens/releases/latest/download/playlens.zip">Download <code>playlens.zip</code></a> and unzip it.</li>
-      <li>Open <code>chrome://extensions</code> and turn on <strong>Developer mode</strong>.</li>
-      <li>Click <strong>Load unpacked</strong> and pick the unzipped folder.</li>
+      <li>Open the <a href="https://chromewebstore.google.com/detail/playlens-%E2%80%93-app-stats-for/hnhlkgnfbcijmnaaclpliogmmnflekko">PlayLens page on the Chrome Web Store</a>.</li>
+      <li>Click <strong>Add to Chrome</strong>, then <strong>Add extension</strong>.</li>
       <li>Open any Google Play list page — stats appear on every app card.</li>
     </ol>
+    <details class="install-manual">
+      <summary>Or install it from the source</summary>
+      <ol class="install">
+        <li><a href="https://github.com/fighttechvn/playlens/releases/latest/download/playlens.zip">Download <code>playlens.zip</code></a> and unzip it.</li>
+        <li>Open <code>chrome://extensions</code> and turn on <strong>Developer mode</strong>.</li>
+        <li>Click <strong>Load unpacked</strong> and pick the unzipped folder.</li>
+      </ol>
+    </details>
   </section>
 
   <section class="wrap">
@@ -290,7 +324,7 @@
     <div class="faq">
       <details>
         <summary>How do I see the download count of an app without opening it?</summary>
-        <p>Install PlayLens and open any Google&nbsp;Play list page. The download count, rating, review count and last-updated date appear on each app card directly — no clicking through.</p>
+        <p>Install PlayLens and open any Google&nbsp;Play list page. The exact install count, rating, number of ratings, last-updated date and app age appear on each app card directly — no clicking through.</p>
       </details>
       <details>
         <summary>Which Google Play pages does it work on?</summary>
@@ -302,11 +336,11 @@
       </details>
       <details>
         <summary>Can I export the list to a spreadsheet?</summary>
-        <p>Yes. Open the side panel and click <strong>CSV</strong> — the whole scanned list is copied to your clipboard, ready to paste into Sheets or Excel.</p>
+        <p>Yes. Open the side panel and click <strong>Export</strong> — copy the table, or download it as CSV or JSON with every field, ready for Sheets or Excel.</p>
       </details>
       <details>
         <summary>Does it collect or send my data anywhere?</summary>
-        <p>No. There is no account, no analytics and no server of ours. PlayLens runs only on play.google.com, fetches the same public pages you could open yourself, and caches results on your device for 12 hours. See the <a href="privacy.html">privacy policy</a>.</p>
+        <p>No. There is no account, no analytics and no server of ours. PlayLens runs only on play.google.com, fetches the same public pages you could open yourself, and keeps what it stores — cache, Recent list, Watchlist — on your device. See the <a href="privacy.html">privacy policy</a>.</p>
       </details>
       <details>
         <summary>Does it work in Edge, Brave or Opera?</summary>
@@ -334,7 +368,7 @@
       {
         "@type": "Question",
         "name": "How do I see the download count of an app without opening it?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Install PlayLens and open any Google Play list page. The download count, rating, review count and last-updated date appear on each app card directly — no clicking through." }
+        "acceptedAnswer": { "@type": "Answer", "text": "Install PlayLens and open any Google Play list page. The exact install count, rating, number of ratings, last-updated date and app age appear on each app card directly — no clicking through." }
       },
       {
         "@type": "Question",
@@ -349,12 +383,12 @@
       {
         "@type": "Question",
         "name": "Can I export the list to a spreadsheet?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Yes. Open the side panel and click CSV — the whole scanned list is copied to your clipboard, ready to paste into Sheets or Excel." }
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. Open the side panel and click Export — copy the table, or download it as CSV or JSON with every field, ready for Sheets or Excel." }
       },
       {
         "@type": "Question",
         "name": "Does it collect or send my data anywhere?",
-        "acceptedAnswer": { "@type": "Answer", "text": "No. There is no account, no analytics and no server of ours. PlayLens runs only on play.google.com, fetches the same public pages you could open yourself, and caches results on your device for 12 hours." }
+        "acceptedAnswer": { "@type": "Answer", "text": "No. There is no account, no analytics and no server of ours. PlayLens runs only on play.google.com, fetches the same public pages you could open yourself, and keeps what it stores — cache, Recent list, Watchlist — on your device." }
       },
       {
         "@type": "Question",
