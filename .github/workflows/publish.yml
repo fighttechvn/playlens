@@ -24,6 +24,9 @@ concurrency:
 
 jobs:
   publish:
+    # Kênh uat tạo pre-release tag "uat" mỗi lần merge — event đó cũng là
+    # release/published. Chỉ release chính thức (vX.Y.Z) mới được lên store.
+    if: github.event_name != 'release' || github.event.release.prerelease == false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

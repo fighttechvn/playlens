@@ -1,5 +1,14 @@
-# Tự động build khi code được merge/push từ develop vào uat.
-# Kết quả: zip extension đính kèm vào artifacts của run.
+# Build khi code được merge/push từ develop vào uat.
+#
+# Kết quả có hai đường:
+#   - artifact của run  → cho PR, xem nhanh, hết hạn sau 90 ngày, cần đăng nhập
+#   - pre-release "uat" → chỉ khi push thẳng vào uat, link tải cố định:
+#       https://github.com/fighttechvn/playlens/releases/download/uat/playlens-uat.zip
+#
+# Tag "uat" là tag chạy (rolling): mỗi lần build sẽ xoá release + tag cũ rồi tạo
+# lại trên commit mới, nên link ở trên luôn trỏ bản uat mới nhất. Bản chính thức
+# vẫn là release có tag vX.Y.Z do người tạo tay — cái đó mới đẩy lên Chrome Web
+# Store (xem publish.yml).
 name: Build extension
 
 on:
@@ -8,6 +17,13 @@ on:
   pull_request:
     branches: [uat]
   workflow_dispatch:
+
+concurrency:
+  group: build-uat-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -22,9 +38,56 @@ jobs:
         id: ver
         run: echo "version=$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' manifest.json)" >> "$GITHUB_OUTPUT"
 
+      - name: Check the zip is loadable
+        run: |
+          # Một zip build hỏng (thiếu manifest) vẫn "build xong" — chặn ở đây
+          # trước khi nó thành file cho người khác tải về.
+          unzip -l dist/playlens.zip | grep -q ' manifest.json$'
+          unzip -p dist/playlens.zip manifest.json | python3 -c "import json,sys; json.load(sys.stdin)"
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: playlens-v${{ steps.ver.outputs.version }}
           path: dist/playlens-v${{ steps.ver.outputs.version }}.zip
           if-no-files-found: error
+
+      - name: Publish the uat pre-release
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          set -euo pipefail
+          cp "dist/playlens-v$VERSION.zip" "dist/playlens-uat.zip"
+
+          # Tag "uat" phải nhảy sang commit mới. API không cho đổi target của
+          # release đã có, nên xoá cả release lẫn tag rồi tạo lại.
+          gh release delete uat --yes --cleanup-tag 2>/dev/null || true
+
+          # Notes viết ra file: heredoc trong YAML sẽ kéo theo thụt lề, mà
+          # thụt lề 4 dấu cách trong markdown là code block.
+          {
+            echo "Bản build tự động từ nhánh \`uat\`, **chưa phải bản phát hành**."
+            echo
+            echo "| | |"
+            echo "|---|---|"
+            echo "| Version | \`$VERSION\` |"
+            echo "| Commit | [\`${GITHUB_SHA:0:7}\`]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/commit/$GITHUB_SHA) |"
+            echo "| Run | [#$GITHUB_RUN_NUMBER]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) |"
+            echo
+            echo "Tải \`playlens-uat.zip\`, giải nén, vào \`chrome://extensions\` → bật **Developer mode** → **Load unpacked**."
+            echo
+            echo "Link luôn trỏ bản uat mới nhất: \`releases/download/uat/playlens-uat.zip\`"
+          } > dist/notes.md
+
+          gh release create uat \
+            --target "$GITHUB_SHA" \
+            --title "uat — v$VERSION" \
+            --prerelease \
+            --notes-file dist/notes.md \
+            "dist/playlens-uat.zip" \
+            "dist/playlens-v$VERSION.zip"
+
+          echo "### uat pre-release đã cập nhật: v$VERSION" >> "$GITHUB_STEP_SUMMARY"
+          echo "[playlens-uat.zip](${{ github.server_url }}/${{ github.repository }}/releases/download/uat/playlens-uat.zip)" >> "$GITHUB_STEP_SUMMARY"

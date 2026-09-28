@@ -7,8 +7,9 @@ dashboard. Setup is a one-time ~10 minutes; after that every release is one comm
 
 The [CWS API](https://developer.chrome.com/docs/webstore/using-api) only moves packages.
 It cannot create the listing text, upload screenshots, or answer the privacy
-declarations — so **the first submission must be done by hand** in the dashboard (see
-[listing.md](listing.md)). Once the item exists, the API handles every version after it.
+declarations — so **the first submission had to be done by hand** in the dashboard (see
+[listing.md](listing.md)). That is done: the item exists, and the API handles every
+version after it.
 
 ## One-time setup
 
@@ -48,8 +49,9 @@ curl -X POST https://oauth2.googleapis.com/token \
 The response contains `refresh_token`. It does not expire unless you revoke it, but the
 code is single-use — if the exchange fails, redo step 3 for a fresh one.
 
-**4. Find the item ID.** After the first manual submission, it's the 32-character string
-in the dashboard URL: `.../devconsole/.../<ITEM_ID>/edit`.
+**4. Find the item ID.** Already known — PlayLens is item `hnhlkgnfbcijmnaaclpliogmmnflekko`, the
+32-character string in both the dashboard URL (`.../devconsole/.../<ITEM_ID>/edit`) and the
+public listing URL.
 
 **5. Write the credentials file.** Create `.env.cws` in the repo root — it is gitignored,
 and must stay that way:
@@ -58,7 +60,7 @@ and must stay that way:
 CWS_CLIENT_ID=...
 CWS_CLIENT_SECRET=...
 CWS_REFRESH_TOKEN=...
-CWS_ITEM_ID=...
+CWS_ITEM_ID=hnhlkgnfbcijmnaaclpliogmmnflekko
 ```
 
 ## Releasing after that
