@@ -87,9 +87,9 @@ The extension is live as item `hnhlkgnfbcijmnaaclpliogmmnflekko`; the listing te
 ./tools/publish.sh --publish    # upload and submit for review
 ```
 
-Or let CI do it — with the four `CWS_*` repository secrets set, publishing a GitHub release uploads the build and submits it for review (`.github/workflows/publish.yml`).
+Or let CI do it: bump `version` in `manifest.json`, merge to `main`, and `.github/workflows/publish.yml` builds, uploads to the store, tags `vX.Y.Z` and creates the GitHub release (a draft in the dashboard by default; set the repository variable `CWS_AUTO_SUBMIT=true` to submit for review as well). Pages redeploys from `main` by itself.
 
-Setup for either path (OAuth client, refresh token, item ID) is in [store/api-publishing.md](store/api-publishing.md).
+One-time setup — an OAuth client in Google Cloud, then `node tools/cws-setup.js` (token, `.env.cws`, GitHub secrets) — is in [store/api-publishing.md](store/api-publishing.md).
 
 ## Branches & CI
 
