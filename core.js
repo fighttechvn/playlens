@@ -687,6 +687,288 @@
     return map;
   }
 
+
+  // ---------- Pro: rank tracker ----------
+  //
+  // rk:<appId> = { "<GL>|<term>": [[unixDay, rank], …] }. Rank is the place in
+  // the first thirty results of Play's search page; 0 means "not in them".
+
+  const RANK_DEPTH = 30;
+  const RANK_KEEP = 90;
+
+  const trackKey = (term, gl) => String(gl || 'US').toUpperCase() + '|' + String(term || '').trim().toLowerCase();
+
+  function parseTrackKey(key) {
+    const i = String(key).indexOf('|');
+    return { gl: key.slice(0, i), term: key.slice(i + 1) };
+  }
+
+  function pushTrack(map, key, rank, now) {
+    const out = map && typeof map === 'object' ? { ...map } : {};
+    const day = Math.floor((now || Date.now()) / DAY_MS);
+    const list = Array.isArray(out[key]) ? [...out[key]] : [];
+    if (list.length && list[list.length - 1][0] === day) list[list.length - 1] = [day, rank];
+    else list.push([day, rank]);
+    out[key] = list.slice(-RANK_KEEP);
+    return out;
+  }
+
+  // Latest place, the one before it, and the move (positive = climbed).
+  // Falling out of the results is a move of its own, reported as `left`.
+  function trackMove(list) {
+    if (!Array.isArray(list) || !list.length) return null;
+    const last = list[list.length - 1];
+    const prev = list.length > 1 ? list[list.length - 2] : null;
+    const rank = last[1];
+    const before = prev ? prev[1] : null;
+    let move = 0;
+    if (before != null) {
+      if (rank && before) move = before - rank;
+      else if (rank && !before) move = RANK_DEPTH + 1 - rank; // came into the list
+      else if (!rank && before) move = -(RANK_DEPTH + 1 - before); // dropped out
+    }
+    return {
+      rank,
+      prev: before,
+      move,
+      entered: !!rank && before === 0,
+      left: !rank && !!before,
+      day: last[0],
+    };
+  }
+
+  // Pairs across every tracked app, oldest first, cut to what the plan allows.
+  function trackedPairs(all, watchIds, limit) {
+    const out = [];
+    for (const id of watchIds || []) {
+      const map = all['rk:' + id];
+      if (!map) continue;
+      for (const key of Object.keys(map)) out.push({ id, key, ...parseTrackKey(key) });
+    }
+    return typeof limit === 'number' ? out.slice(0, limit) : out;
+  }
+
+  function countTracked(all) {
+    let n = 0;
+    for (const [k, v] of Object.entries(all)) if (k.startsWith('rk:') && v) n += Object.keys(v).length;
+    return n;
+  }
+
+  // Place of an app in a search, read from the search page HTML.
+  function rankIn(html, id) {
+    const i = searchIds(html, RANK_DEPTH).indexOf(id);
+    return i < 0 ? 0 : i + 1;
+  }
+
+  // ---------- Pro: backup and report ----------
+
+  const BACKUP_FORMAT = 'playlens-backup';
+
+  // Everything that took time to build up: the watchlist, the daily numbers,
+  // the ranks. Caches and the recent list are left out — they rebuild.
+  function backupKeep(k) {
+    return k === 'watch' || /^(w|h|kw|rk):/.test(k);
+  }
+
+  function makeBackup(all, now) {
+    const data = {};
+    for (const [k, v] of Object.entries(all)) if (backupKeep(k) && v != null) data[k] = v;
+    return { format: BACKUP_FORMAT, version: 1, exportedAt: new Date(now || Date.now()).toISOString(), data };
+  }
+
+  // Checks a parsed file and returns the entries safe to write back; anything
+  // with an unknown key or the wrong shape is dropped, never written.
+  function readBackup(json) {
+    if (!json || json.format !== BACKUP_FORMAT || !json.data || typeof json.data !== 'object') return null;
+    const data = {};
+    let skipped = 0;
+    for (const [k, v] of Object.entries(json.data)) {
+      const ok =
+        backupKeep(k) &&
+        (k === 'watch' ? Array.isArray(v) && v.every((x) => typeof x === 'string') : v && typeof v === 'object');
+      if (ok) data[k] = v;
+      else skipped++;
+    }
+    return { data, skipped, apps: Object.keys(data).filter((k) => k.startsWith('w:')).length };
+  }
+
+  const esc = (t) =>
+    String(t == null ? '' : t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+
+  // One row per watched app: what moved in the last `days` days.
+  function reportRows(all, now, days) {
+    now = now || Date.now();
+    days = days || 7;
+    const since = now - days * DAY_MS;
+    const ids = Array.isArray(all.watch) ? all.watch : [];
+    const rows = [];
+    for (const id of ids) {
+      const w = all['w:' + id];
+      if (!w) continue;
+      const hist = all['h:' + id] || [];
+      const v = velocity(hist);
+      const first = hist.find((s) => s[0] * 1000 >= since);
+      const last = hist[hist.length - 1];
+      const growth = first && last && first !== last ? last[1] - first[1] : null;
+      const ratingNow = last && last[3] != null ? last[3] / 100 : w.info && w.info.score != null ? w.info.score : null;
+      const ratingThen = first && first[3] != null ? first[3] / 100 : null;
+      const changes = (w.changes || []).filter((c) => c.t >= since);
+      const ranks = [];
+      for (const [key, list] of Object.entries(all['rk:' + id] || {})) {
+        const m = trackMove(list);
+        if (m) ranks.push({ ...parseTrackKey(key), ...m });
+      }
+      rows.push({
+        id,
+        name: w.name || id,
+        installs: w.info ? w.info.installs ?? null : null,
+        downloads: w.info ? w.info.downloads || null : null,
+        growth,
+        perDay: v ? v.perDay : null,
+        rating: ratingNow,
+        ratingMove: ratingNow != null && ratingThen != null ? ratingNow - ratingThen : null,
+        changes,
+        ranks,
+      });
+    }
+    return rows;
+  }
+
+  function reportMarkdown(rows, now, days) {
+    const d = new Date(now || Date.now()).toISOString().slice(0, 10);
+    const out = ['# PlayLens report — ' + d, '', 'Last ' + days + ' days, ' + rows.length + ' watched apps.', ''];
+    for (const r of rows) {
+      out.push('## ' + r.name + ' (`' + r.id + '`)');
+      out.push(
+        '- Installs: ' + (r.installs != null ? r.installs.toLocaleString('en-US') : r.downloads || '—') +
+          (r.growth ? ' (' + (r.growth > 0 ? '+' : '') + r.growth.toLocaleString('en-US') + ')' : '') +
+          (r.perDay != null ? ' · ' + compact(r.perDay) + ' a day' : '')
+      );
+      if (r.rating != null) {
+        out.push(
+          '- Rating: ' + r.rating.toFixed(2) +
+            (r.ratingMove ? ' (' + (r.ratingMove > 0 ? '+' : '') + r.ratingMove.toFixed(2) + ')' : '')
+        );
+      }
+      for (const k of r.ranks) {
+        out.push(
+          '- “' + k.term + '” in ' + k.gl + ': ' + (k.rank ? '#' + k.rank : 'not in the top ' + RANK_DEPTH) +
+            (k.move ? ' (' + (k.move > 0 ? '▲' : '▼') + Math.abs(k.move) + ')' : '')
+        );
+      }
+      for (const c of r.changes) out.push('- ' + c.f + ': ' + c.a + ' → ' + c.b);
+      out.push('');
+    }
+    return out.join('\n');
+  }
+
+  function reportHtml(rows, now, days) {
+    const d = new Date(now || Date.now()).toISOString().slice(0, 10);
+    const li = (t) => '<li>' + esc(t) + '</li>';
+    const cards = rows
+      .map((r) => {
+        const items = [
+          'Installs: ' + (r.installs != null ? r.installs.toLocaleString('en-US') : r.downloads || '—') +
+            (r.growth ? ' (' + (r.growth > 0 ? '+' : '') + r.growth.toLocaleString('en-US') + ')' : '') +
+            (r.perDay != null ? ' · ' + compact(r.perDay) + ' a day' : ''),
+        ];
+        if (r.rating != null) {
+          items.push(
+            'Rating: ' + r.rating.toFixed(2) +
+              (r.ratingMove ? ' (' + (r.ratingMove > 0 ? '+' : '') + r.ratingMove.toFixed(2) + ')' : '')
+          );
+        }
+        for (const k of r.ranks) {
+          items.push(
+            '“' + k.term + '” in ' + k.gl + ': ' + (k.rank ? '#' + k.rank : 'not in the top ' + RANK_DEPTH) +
+              (k.move ? ' (' + (k.move > 0 ? '▲' : '▼') + Math.abs(k.move) + ')' : '')
+          );
+        }
+        for (const c of r.changes) items.push(c.f + ': ' + c.a + ' → ' + c.b);
+        return (
+          '<section><h2>' + esc(r.name) + ' <small>' + esc(r.id) + '</small></h2><ul>' + items.map(li).join('') + '</ul></section>'
+        );
+      })
+      .join('\n');
+    return (
+      '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+      '<title>PlayLens report ' + d + '</title><style>' +
+      ':root{color-scheme:light dark;--bg:#fff;--ink:#1f1f1f;--muted:#5f6368;--line:#dadce0}' +
+      '@media(prefers-color-scheme:dark){:root{--bg:#1f1f1f;--ink:#e3e3e3;--muted:#9aa0a6;--line:#3c4043}}' +
+      'body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,sans-serif}' +
+      'main{max-width:720px;margin:0 auto;padding:32px 20px}h1{font-size:22px;margin:0 0 4px}' +
+      'p{color:var(--muted);margin:0 0 24px}section{border-top:1px solid var(--line);padding:14px 0}' +
+      'h2{font-size:16px;margin:0 0 6px}small{color:var(--muted);font-weight:400;font-size:12px}ul{margin:0;padding-left:18px}' +
+      '</style></head><body><main><h1>PlayLens report — ' + d + '</h1><p>Last ' + days + ' days, ' + rows.length +
+      ' watched apps.</p>' + cards + '</main></body></html>'
+    );
+  }
+
+  // ---------- Pro: comparing apps ----------
+
+  // Installs of each app as a share of its own first day on record, so apps
+  // of different sizes can sit on one axis. Returns null when there is no
+  // history to draw.
+  function indexSeries(hist) {
+    if (!Array.isArray(hist) || hist.length < 2 || !hist[0][1]) return null;
+    const base = hist[0][1];
+    return hist.map((s) => [s[0], (s[1] / base) * 100]);
+  }
+
+  function ratingSeries(hist) {
+    if (!Array.isArray(hist)) return null;
+    const pts = hist.filter((s) => s[3] != null).map((s) => [s[0], s[3] / 100]);
+    return pts.length >= 2 ? pts : null;
+  }
+
+  // For one comparison row: which cells hold the best value. `dir` is 1 when
+  // bigger is better, -1 when smaller is, 0 when no cell is "best".
+  function bestIndexes(values, dir) {
+    if (!dir) return [];
+    const nums = values.map((v) => (typeof v === 'number' && Number.isFinite(v) ? v : null));
+    const have = nums.filter((v) => v != null);
+    if (have.length < 2) return [];
+    const best = dir > 0 ? Math.max(...have) : Math.min(...have);
+    if (have.every((v) => v === best)) return [];
+    return nums.map((v, i) => (v === best ? i : -1)).filter((i) => i >= 0);
+  }
+
+  // ---------- Pro: saved keyword lists ----------
+
+  const KW_LISTS_KEY = 'kwl';
+
+  function saveKeywordList(lists, name, gl, items, now, max) {
+    const clean = items
+      .filter((x) => x && x.term)
+      .slice(0, 500)
+      .map((x) => ({
+        term: x.term,
+        score: x.score && typeof x.score === 'object' ? x.score.score : null,
+        med: x.sum ? Math.round(x.sum.medInstalls) : null,
+        age: x.sum ? Math.round(x.sum.medAgeDays) : null,
+      }));
+    const rest = (Array.isArray(lists) ? lists : []).filter((l) => l.name !== name);
+    return [{ name, gl, t: now || Date.now(), items: clean }, ...rest].slice(0, max || 20);
+  }
+
+  // Notification text for what the daily check found; null if nothing is worth a ping.
+  function alertText(changes, moves) {
+    const lines = [];
+    for (const c of changes || []) {
+      if (['Version', 'Rating', 'Price', 'Installs', 'Updated'].includes(c.f)) {
+        lines.push(c.name + ' — ' + c.f + ': ' + c.a + ' → ' + c.b);
+      }
+    }
+    for (const m of moves || []) {
+      if (m.entered) lines.push(m.name + ' — “' + m.term + '” (' + m.gl + ') entered the top ' + RANK_DEPTH + ' at #' + m.rank);
+      else if (m.left) lines.push(m.name + ' — “' + m.term + '” (' + m.gl + ') left the top ' + RANK_DEPTH);
+      else if (Math.abs(m.move) >= 3) {
+        lines.push(m.name + ' — “' + m.term + '” (' + m.gl + ') ' + (m.move > 0 ? 'up ' : 'down ') + Math.abs(m.move) + ' to #' + m.rank);
+      }
+    }
+    return lines.length ? lines : null;
+  }
+
   // ---------- what is kept on the device ----------
 
   const store = {
@@ -767,10 +1049,10 @@
       if (k.startsWith('app:') || k.startsWith('cc:')) {
         if (!v || !v.t || now - v.t > 7 * DAY_MS) out.push(k);
         else caches.push([k, v.t]);
-      } else if (k.startsWith('h:') || k.startsWith('kw:')) {
+      } else if (k.startsWith('h:') || k.startsWith('kw:') || k.startsWith('rk:')) {
         const id = k.slice(k.indexOf(':') + 1);
         if (keep.has(id)) continue;
-        if (k.startsWith('kw:')) {
+        if (k.startsWith('kw:') || k.startsWith('rk:')) {
           out.push(k); // ranks are only kept for watched apps
           continue;
         }
@@ -838,6 +1120,25 @@
     searchUrl,
     searchIds,
     pushRank,
+    RANK_DEPTH,
+    trackKey,
+    parseTrackKey,
+    pushTrack,
+    trackMove,
+    trackedPairs,
+    countTracked,
+    rankIn,
+    makeBackup,
+    readBackup,
+    reportRows,
+    reportMarkdown,
+    reportHtml,
+    indexSeries,
+    ratingSeries,
+    bestIndexes,
+    KW_LISTS_KEY,
+    saveKeywordList,
+    alertText,
     store,
     record,
     gcKeys,

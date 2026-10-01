@@ -2,9 +2,10 @@
   "manifest_version": 3,
   "name": "PlayLens – App Stats for Google Play",
   "short_name": "PlayLens",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "App statistics on Google Play lists: exact installs, app age, ratings spread, prices, a watchlist, keyword ideas and CSV export.",
   "permissions": ["storage", "clipboardWrite", "alarms"],
+  "optional_permissions": ["notifications"],
   "host_permissions": ["https://play.google.com/*"],
   "background": {
     "service_worker": "background.js"
@@ -30,7 +31,7 @@
   "content_scripts": [
     {
       "matches": ["https://play.google.com/*"],
-      "js": ["core.js", "content.js"],
+      "js": ["core.js", "license.js", "content.js"],
       "css": ["styles.css"],
       "run_at": "document_idle"
     }
