@@ -5,7 +5,7 @@ This file stays as the source of truth for the listing text; edit it here, then 
 the changed field into the dashboard.
 
 Everything to copy-paste into the [CWS Developer Dashboard](https://chrome.google.com/webstore/devconsole).
-Upload file: `dist/playlens-v2.0.0.zip` (run `./build.sh`).
+Upload file: `dist/playlens-v2.1.0.zip` (run `./build.sh`).
 
 > **2.0.0 changes what the item asks for.** It adds the `alarms` permission and a host
 > permission for `https://play.google.com/*` (1.6.1 reached the same site through the
@@ -13,6 +13,16 @@ Upload file: `dist/playlens-v2.0.0.zip` (run `./build.sh`).
 > screenshots, and fill in the two new justifications on the Privacy tab. Chrome should show
 > no new warning to people who already have it installed — the site was already listed —
 > but the review can take longer than a text-only update.
+
+> **2.1.0 adds an optional paid plan (PlayLens Pro, sold by Polar).** What changes on the
+> dashboard: an optional `notifications` permission (only requested when the user switches
+> Alerts on, so no install warning), a payments disclosure in the description, and the
+> licence-key line in Data usage below. The licence check goes to `api.polar.sh` from the
+> extension; Polar's endpoint allows extension origins, so there is no new host permission.
+> It only becomes buyable once the owner fills in `license.js` (`CONFIG.ORG_ID` and
+> `CONFIG.CHECKOUT`) — until then the settings page says "coming soon" and nothing is sent
+> to Polar. Do not upload to the store before that, or the Pro text will promise something
+> that cannot be bought yet.
 
 Every field below was written against the [listing requirements](https://developer.chrome.com/docs/webstore/program-policies/listing-requirements)
 and the [Google branding guidelines](https://developer.chrome.com/docs/webstore/branding) — see
@@ -90,10 +100,12 @@ PlayLens is an independent project. It is not affiliated with, endorsed by, or s
   - `clipboardWrite` — used only when the user clicks a Copy button (the table as CSV, a developer's email address, a list of search terms).
   - `alarms` — wakes the service worker about every six hours to re-read the Google Play pages of the apps the user put on the watchlist, so changes of version, price or rating can be shown. Nothing is scheduled to run against any other site, no request is made while the watchlist is empty, and the user can switch it off in the settings.
   - Host `https://play.google.com/*` — the extension's single purpose is to annotate Google Play pages. The content script reads the list the user is looking at and fetches the public detail pages of the apps on it; the service worker fetches the same public pages for the watchlist. It never runs on, or sends anything to, any other site.
+  - `notifications` (optional permission) — requested only when the user switches on Alerts in the settings. Shows a desktop notification when a keyword they follow moves or a watched app changes version, price or rating. Built on the device from data already stored there; nothing is fetched for it. Without Alerts the permission is never requested.
+  - Calls to `https://api.polar.sh/*` (no permission needed) — only when the user pastes a PlayLens Pro licence key: the key, the seller's organisation id and a browser label are sent to check the key and are re-checked about once a day. Nothing else is sent. Without a key nothing is sent to Polar.
 - **Remote code:** No, all code is packaged in the extension.
-- **Data usage:** check **nothing** (no data collected). Certify the disclosures.
+- **Data usage:** check **nothing** for browsing data, personally identifiable information, health, financial, location, communications and web history. The Pro licence key is a licence token for a purchase made on Polar's own page; if the dashboard form needs it declared, tick **Authentication information** and say so in the privacy policy (it already does). PlayLens never receives names, emails or card data. Certify the disclosures.
 - **Privacy policy URL:** https://fighttechvn.github.io/playlens/privacy.html
-  (`docs/privacy.html` — updated for 2.0.0; it goes live when `main` is pushed, so push
+  (`docs/privacy.html` — updated for 2.1.0, with the Polar and notifications sections; it goes live when `main` is pushed, so push
   before submitting.)
 
 ## Distribution
@@ -161,7 +173,10 @@ details view links to are deliberately not named in the description.
 - ✅ All screenshots are real captures of the current build at 1280×800, not mockups.
 - ✅ The description claims no feature that isn't in the shipped code.
 - ✅ Permissions listed in the manifest are exactly what the code uses: `storage`,
-  `clipboardWrite`, `alarms`, and the one host `https://play.google.com/*`.
+  `clipboardWrite`, `alarms`, the optional `notifications`, and the one host
+  `https://play.google.com/*`.
+- ✅ The Pro text lists only what the code does, with the real limits (3 followed keywords
+  free, 150 Pro; 2 apps compared free, 6 Pro). Prices appear only on the landing page.
 - ✅ No revenue or earnings figures are shown anywhere — they cannot be read from public
   pages, so the extension does not guess them.
 - ✅ Reviewer names are left out of the reviews view and of the review export.
@@ -188,3 +203,12 @@ Still open for the owner: set the four `CWS_*` repository secrets so CI can publ
 3. Store listing tab: paste the new description, replace the screenshots.
 4. Privacy tab: new single purpose text, justifications for `alarms` and the host permission.
 5. Submit for review.
+
+### Updating to 2.1.0 (after Polar is set up)
+
+1. Fill in `CONFIG.ORG_ID` and `CONFIG.CHECKOUT` in `license.js` and `CHECKOUT` in `docs/index.html`; test one purchase on Polar's sandbox (`CONFIG.API` → `https://sandbox-api.polar.sh`), then switch back to production.
+2. Push `main` so the privacy policy and pricing section are live.
+3. `./build.sh` → upload `dist/playlens-v2.1.0.zip`.
+4. Privacy tab: add the `notifications` and `api.polar.sh` justifications above; update Data usage.
+5. Store listing: add one line to the description — "Optional PlayLens Pro (paid, sold by Polar) adds a daily rank tracker, alerts, comparison charts, reports and backups; everything else is free."
+6. Submit for review.

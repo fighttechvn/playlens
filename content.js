@@ -55,7 +55,10 @@
     watch: new Map(), // id -> {id, name, icon, info, added, checked, changes, unseen}
     hist: new Map(), // id -> snapshots, for rows that are not on this page
     drawer: null, // {id, el} the one expanded row
-    kw: { seed: '', gl: 'US', az: false, items: [], busy: false, note: '' },
+    kw: { seed: '', gl: 'US', az: false, items: [], busy: false, note: '', trackApp: '', listName: '' },
+    kwl: [], // saved keyword lists (Pro)
+    cmp: [], // ids picked for comparing
+    prevView: 'page',
   };
 
   const seenIds = new Set();
@@ -128,6 +131,16 @@
               if (c.newValue) state.watch.set(id, c.newValue);
               else state.watch.delete(id);
               touched = true;
+            } else if (k === P.license.KEY) {
+              setLicense(c.newValue || null);
+              state.drawer = null; // its Pro parts were drawn for the old plan
+              if (state.tool === 'export') renderToolbar();
+              touched = true;
+            } else if (k === P.KW_LISTS_KEY) {
+              state.kwl = Array.isArray(c.newValue) ? c.newValue : [];
+              touched = true;
+            } else if (k.startsWith('rk:')) {
+              trackViews.get(k.slice(3))?.();
             } else if (k.startsWith('h:')) {
               const id = k.slice(2);
               const list = c.newValue || [];
@@ -239,6 +252,92 @@
 
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+  // ---------- Pro: licence ----------
+  // The settings page (and the service worker, once a day) keep the licence
+  // record up to date. Here it is only read, and watched for changes.
+
+  const LIC = P.license;
+  let proState = LIC.status(null);
+  let limitsNow = LIC.limits(null);
+
+  const isPro = () => proState.pro;
+  const lim = () => limitsNow;
+
+  function setLicense(rec) {
+    proState = LIC.status(rec);
+    limitsNow = LIC.limits(rec);
+  }
+
+  async function loadLicense() {
+    setLicense(await LIC.read());
+  }
+
+  async function loadKwl() {
+    const got = await storageGet('local', P.KW_LISTS_KEY);
+    state.kwl = Array.isArray(got[P.KW_LISTS_KEY]) ? got[P.KW_LISTS_KEY] : [];
+  }
+
+  function openOptions() {
+    try {
+      chrome.runtime.sendMessage({ type: 'plsi:options' }, () => void chrome.runtime.lastError);
+    } catch {
+      /* not running as extension */
+    }
+  }
+
+  const proTag = () => el('span', 'plsi-pro', 'PRO');
+
+  // Why Pro is off, when it was on before.
+  function proWhy() {
+    const r = proState.reason;
+    if (r === 'lapsed') return 'Your licence could not be confirmed for two weeks. Connect and open the settings to renew the check.';
+    if (r === 'expired') return 'Your licence has expired.';
+    if (r === 'revoked') return 'That licence key is no longer active.';
+    return '';
+  }
+
+  // A short message at the foot of the panel.
+  let toastTimer = null;
+  function toast(text, withUpgrade) {
+    if (!panel) return;
+    panel.querySelector('.plsi-toast')?.remove();
+    const t = el('div', 'plsi-toast');
+    t.appendChild(el('span', null, text));
+    if (withUpgrade) t.appendChild(link(LIC.buyUrl('yearly'), 'See Pro'));
+    panel.appendChild(t);
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.remove(), withUpgrade ? 7000 : 3500);
+  }
+
+  // A button that works for Pro and, for everyone else, says what Pro adds.
+  function proButton(label, title, onPro, cls, bare) {
+    const b = button(
+      label,
+      title,
+      (ev, btn) => {
+        if (isPro()) onPro(ev, btn);
+        else toast(title + ' — part of Pro.', true);
+      },
+      (cls || '') + (isPro() ? '' : ' plsi-btn-locked')
+    );
+    if (!isPro() && !bare) b.appendChild(proTag());
+    return b;
+  }
+
+  function upsell(title, text) {
+    const box = el('div', 'plsi-upsell');
+    const head = el('div');
+    head.appendChild(el('b', null, title));
+    head.appendChild(proTag());
+    box.appendChild(head);
+    box.appendChild(el('div', 'plsi-note', text + (proWhy() ? ' ' + proWhy() : '')));
+    const row = el('div', 'plsi-actions');
+    row.appendChild(link(LIC.buyUrl('yearly'), 'See Pro', 'plsi-btn plsi-btn-main'));
+    row.appendChild(button('I have a key', 'Open the settings to enter a licence key', openOptions));
+    box.appendChild(row);
+    return box;
+  }
+
   // ---------- app data: cache, fetch, history ----------
 
   async function fetchAppInfo(id, gl) {
@@ -332,7 +431,7 @@
   function toggleWatch(app) {
     if (state.watch.has(app.id)) {
       state.watch.delete(app.id);
-      storageRemove('local', ['w:' + app.id, 'kw:' + app.id]);
+      storageRemove('local', ['w:' + app.id, 'kw:' + app.id, 'rk:' + app.id]);
     } else {
       if (!app.info) return;
       const now = Date.now();
@@ -966,11 +1065,13 @@
   let table = null;
   let emptyNote = null;
   let kwView = null;
+  let cmpBtn = null;
   let fab = null; // floating toggle button
   let renderTimer = null;
 
   function setView(view) {
     if (state.view === view) return;
+    if (view === 'compare') state.prevView = state.view;
     state.view = view;
     // "page" order and "recent" order mean different things — start each view
     // in its own natural order rather than carrying a sort across.
@@ -978,6 +1079,7 @@
     state.drawer = null;
     if (state.tool && view === 'keywords') setTool(null);
     if (view === 'recent' || view === 'watch') loadHistories();
+    if (view === 'compare') loadCmpHist();
     if (view === 'watch') refreshWatch(CACHE_TTL_MS);
     if (view === 'keywords' && !state.kw.seed) state.kw.seed = pageQuery() || '';
     renderPanel();
@@ -1028,6 +1130,9 @@
       export: button('Export', 'Copy or download this list', () => setTool('export')),
     };
     for (const b of Object.values(toolBtns)) controls.appendChild(b);
+    cmpBtn = button('Compare', 'Put the apps you picked side by side', () => setView('compare'));
+    cmpBtn.classList.add('plsi-hidden');
+    controls.appendChild(cmpBtn);
     controls.appendChild(
       button('✕', 'Close panel', () => {
         state.flags.panelOpen = false;
@@ -1075,6 +1180,9 @@
     kwView = el('div', 'plsi-kw plsi-hidden');
     panel.appendChild(kwView);
 
+    cmpView = el('div', 'plsi-cmp-view plsi-hidden');
+    panel.appendChild(cmpView);
+
     document.documentElement.appendChild(panel);
     renderToolbar();
     renderPanel();
@@ -1083,7 +1191,7 @@
   function removePanel() {
     panel?.remove();
     fab?.remove();
-    panel = panelCount = tabAction = toolbar = summaryBox = listWrap = table = emptyNote = kwView = fab = null;
+    panel = panelCount = tabAction = toolbar = summaryBox = listWrap = table = emptyNote = kwView = cmpView = cmpBtn = fab = null;
     panelTabs = [];
     toolBtns = {};
   }
@@ -1169,7 +1277,67 @@
       toolbar.appendChild(
         el('div', 'plsi-note', 'Every field is exported, not only the visible columns. Filters apply.')
       );
+      buildProExport(toolbar);
     }
+  }
+
+  // ---------- Pro: report, backup, restore ----------
+
+  let reportDays = 7;
+
+  function buildProExport(parent) {
+    const head = el('div', 'plsi-note', 'Watchlist ');
+    head.appendChild(proTag());
+    parent.appendChild(head);
+    const row = el('div', 'plsi-actions');
+    row.appendChild(
+      select([[7, 'Last 7 days'], [30, 'Last 30 days']], reportDays, (v) => (reportDays = Number(v)), 'How far back the report looks')
+    );
+    row.appendChild(proButton('Report HTML', 'One page of what moved in the watchlist', () => downloadReport('html')));
+    row.appendChild(proButton('Report MD', 'The same as Markdown', () => downloadReport('md')));
+    row.appendChild(proButton('Backup', 'Everything recorded on this device: watchlist, daily numbers, ranks', downloadBackup));
+    row.appendChild(proButton('Restore', 'Load a backup file made by PlayLens', pickBackup));
+    parent.appendChild(row);
+  }
+
+  async function downloadReport(kind) {
+    const now = Date.now();
+    const rows = P.reportRows(await P.store.get(null), now, reportDays);
+    if (!rows.length) return toast('Watch an app first — the report is about the watchlist.');
+    const name = 'playlens-report-' + stamp();
+    if (kind === 'md') download(name + '.md', 'text/markdown;charset=utf-8', P.reportMarkdown(rows, now, reportDays));
+    else download(name + '.html', 'text/html;charset=utf-8', P.reportHtml(rows, now, reportDays));
+  }
+
+  async function downloadBackup() {
+    const b = P.makeBackup(await P.store.get(null));
+    downloadJson('playlens-backup-' + stamp() + '.json', b);
+    toast('Saved ' + Object.keys(b.data).length + ' entries.');
+  }
+
+  function pickBackup() {
+    const input = el('input');
+    input.type = 'file';
+    input.accept = 'application/json,.json';
+    input.addEventListener('change', async () => {
+      const file = input.files && input.files[0];
+      if (!file) return;
+      let parsed = null;
+      try {
+        parsed = P.readBackup(JSON.parse(await file.text()));
+      } catch {
+        /* not JSON */
+      }
+      if (!parsed || !Object.keys(parsed.data).length) return toast('That file is not a PlayLens backup.');
+      // join the watchlists rather than replace one with the other
+      if (parsed.data.watch) {
+        const cur = (await storageGet('local', WATCH_KEY))[WATCH_KEY];
+        parsed.data.watch = [...new Set([...(Array.isArray(cur) ? cur : []), ...parsed.data.watch])];
+      }
+      storageSet('local', parsed.data);
+      toast('Restored ' + parsed.apps + ' apps' + (parsed.skipped ? ' · ' + parsed.skipped + ' entries skipped' : '') + '.');
+    });
+    input.click();
   }
 
   function markFilterButton() {
@@ -1366,9 +1534,20 @@
     }
 
     const keywords = state.view === 'keywords';
-    listWrap.classList.toggle('plsi-hidden', keywords);
+    const comparing = state.view === 'compare';
+    cmpBtn.classList.toggle('plsi-hidden', !state.cmp.length || comparing);
+    cmpBtn.textContent = 'Compare ' + state.cmp.length;
+    listWrap.classList.toggle('plsi-hidden', keywords || comparing);
     kwView.classList.toggle('plsi-hidden', !keywords);
-    for (const b of Object.values(toolBtns)) b.classList.toggle('plsi-hidden', keywords);
+    cmpView.classList.toggle('plsi-hidden', !comparing);
+    for (const b of Object.values(toolBtns)) b.classList.toggle('plsi-hidden', keywords || comparing);
+    if (comparing) {
+      toolbar.classList.add('plsi-hidden');
+      summaryBox.classList.add('plsi-hidden');
+      panel.style.width = '';
+      renderCompare();
+      return;
+    }
     if (keywords) {
       toolbar.classList.add('plsi-hidden');
       summaryBox.classList.add('plsi-hidden');
@@ -1527,6 +1706,11 @@
       label.appendChild(el('span', 'plsi-row-sub', ago(app.seenAt)));
     }
     cell.appendChild(label);
+
+    const picked = state.cmp.includes(app.id);
+    const cmp = button('⇄', picked ? 'Take out of the comparison' : 'Add to the comparison', () => toggleCmp(app), 'plsi-cmp' + (picked ? ' plsi-cmp-on' : ''));
+    cmp.disabled = !app.info;
+    cell.appendChild(cmp);
 
     const star = button(w ? '★' : '☆', w ? 'Stop watching' : 'Watch this app', () => toggleWatch(app), 'plsi-star');
     star.classList.toggle('plsi-star-on', !!w);
@@ -1827,6 +2011,9 @@
       });
     }
 
+    // --- rank tracker (Pro beyond the first few) ---
+    buildTracker(box, app);
+
     // --- on demand ---
     const tools = section(box, 'Look closer');
     const bar = el('div', 'plsi-actions');
@@ -1850,6 +2037,198 @@
     links.appendChild(row);
 
     return box;
+  }
+
+  // ---------- drawer: rank tracker ----------
+  // rk:<appId> holds { "<GL>|<term>": [[unixDay, place], …] }. The service
+  // worker adds a point every day; place 0 means "not in the first 30".
+
+  const trackViews = new Map(); // app id -> redraw, for the drawer that is open
+
+  async function trackSnapshot() {
+    const keys = [...state.watch.keys()].map((id) => 'rk:' + id);
+    return keys.length ? storageGet('local', keys) : {};
+  }
+
+  async function lookUpRank(term, gl, id) {
+    const res = await run(() => fetch(P.searchUrl(term, gl), { credentials: 'omit' }));
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return P.rankIn(await res.text(), id);
+  }
+
+  // Starts following a keyword for a watched app and takes the first reading
+  // at once. Resolves to { ok:true, rank } or { ok:false, why }.
+  async function addTrack(id, term, gl) {
+    term = String(term || '').trim().toLowerCase();
+    if (!term) return { ok: false, why: 'empty' };
+    if (!state.watch.has(id)) return { ok: false, why: 'unwatched' };
+    const key = P.trackKey(term, gl);
+    const snap = await trackSnapshot();
+    const map = snap['rk:' + id] || {};
+    if (map[key]) return { ok: false, why: 'exists' };
+    if (P.countTracked(snap) >= lim().rankPairs) return { ok: false, why: 'limit' };
+    let rank;
+    try {
+      rank = await lookUpRank(term, gl, id);
+    } catch {
+      return { ok: false, why: 'network' };
+    }
+    storageSet('local', { ['rk:' + id]: P.pushTrack(map, key, rank) });
+    return { ok: true, rank };
+  }
+
+  async function removeTrack(id, key) {
+    const got = await storageGet('local', 'rk:' + id);
+    const map = { ...(got['rk:' + id] || {}) };
+    delete map[key];
+    if (Object.keys(map).length) storageSet('local', { ['rk:' + id]: map });
+    else storageRemove('local', 'rk:' + id);
+  }
+
+  async function refreshTracks(id) {
+    const got = await storageGet('local', 'rk:' + id);
+    let map = got['rk:' + id] || {};
+    for (const key of Object.keys(map)) {
+      const { gl, term } = P.parseTrackKey(key);
+      try {
+        map = P.pushTrack(map, key, await lookUpRank(term, gl, id));
+      } catch {
+        /* keep the old line; the next check tries again */
+      }
+      await sleep(300);
+    }
+    storageSet('local', { ['rk:' + id]: map });
+  }
+
+  function trackProblem(why) {
+    return (
+      {
+        empty: 'Type a keyword first.',
+        exists: 'Already following that keyword in that country.',
+        unwatched: 'Watch the app first (☆), then follow keywords.',
+        network: 'Play did not answer. Try again in a moment.',
+        limit: 'This plan follows ' + lim().rankPairs + ' keyword–country pairs.',
+      }[why] || 'Could not follow that keyword.'
+    );
+  }
+
+  // Place over time, drawn with 1 at the top. "Not in the first 30" sits below the last place.
+  function rankLine(hist) {
+    const w = 120;
+    const h = 26;
+    const depth = P.RANK_DEPTH + 1;
+    const pts = hist.map((s) => [s[0], s[1] || depth]);
+    const x0 = pts[0][0];
+    const x1 = pts[pts.length - 1][0];
+    const px = (x) => (x1 === x0 ? w : 2 + ((x - x0) / (x1 - x0)) * (w - 6));
+    const py = (r) => 3 + ((r - 1) / (depth - 1)) * (h - 6);
+    const svg = svgEl('svg', { viewBox: '0 0 ' + w + ' ' + h, width: w, height: h, role: 'img' }, 'plsi-rankline');
+    const t = document.createElementNS(SVG_NS, 'title');
+    const last = hist[hist.length - 1][1];
+    t.textContent =
+      'Place from ' + (hist[0][1] ? '#' + hist[0][1] : 'outside the top ' + P.RANK_DEPTH) + ' to ' +
+      (last ? '#' + last : 'outside the top ' + P.RANK_DEPTH) + ' over ' + hist.length + ' days';
+    svg.appendChild(t);
+    svg.appendChild(svgEl('polyline', { points: pts.map((p) => px(p[0]).toFixed(1) + ',' + py(p[1]).toFixed(1)).join(' ') }));
+    svg.appendChild(svgEl('circle', { cx: px(x1).toFixed(1), cy: py(pts[pts.length - 1][1]).toFixed(1), r: 2.5 }));
+    return svg;
+  }
+
+  function buildTracker(parent, app) {
+    const sec = section(parent, 'Rank tracker');
+    const watched = state.watch.has(app.id);
+    if (!watched) {
+      sec.appendChild(el('div', 'plsi-note', 'Press ☆ to watch this app, then follow the keywords it should rank for. A check runs every day.'));
+      return;
+    }
+    const used = el('span', 'plsi-note');
+    sec.firstChild.appendChild(document.createTextNode(' '));
+    sec.firstChild.appendChild(used);
+    const list = el('div');
+    const extra = el('div');
+    const note = el('div', 'plsi-note');
+
+    async function load() {
+      const snap = await trackSnapshot();
+      const map = snap['rk:' + app.id] || {};
+      used.textContent = ' · ' + P.countTracked(snap) + ' of ' + lim().rankPairs + ' followed';
+      list.textContent = '';
+      const entries = Object.entries(map);
+      if (!entries.length) {
+        list.appendChild(el('div', 'plsi-note', 'No keyword followed yet.'));
+      }
+      let hidden = false;
+      for (const [key, hist] of entries) {
+        const { gl, term } = P.parseTrackKey(key);
+        const m = P.trackMove(hist);
+        const row = el('div', 'plsi-track');
+        row.appendChild(el('span', 'plsi-track-term', '“' + term + '” · ' + gl));
+        if (isPro() && hist.length >= 2) row.appendChild(rankLine(hist));
+        else {
+          row.appendChild(el('span'));
+          if (hist.length >= 2) hidden = true;
+        }
+        const rank = el('span', 'plsi-track-rank', m.rank ? '#' + m.rank : 'out');
+        if (!m.rank) rank.title = 'Not among the first ' + P.RANK_DEPTH + ' results';
+        if (m.move) {
+          rank.appendChild(el('span', m.move > 0 ? 'plsi-up' : 'plsi-down', (m.move > 0 ? ' ▲' : ' ▼') + Math.abs(m.move)));
+        }
+        row.appendChild(rank);
+        row.appendChild(button('✕', 'Stop following this keyword', () => removeTrack(app.id, key), 'plsi-btn-sm'));
+        list.appendChild(row);
+      }
+      extra.textContent = '';
+      if (hidden) {
+        const n = el('div', 'plsi-note', 'The line of each keyword over time is part of ');
+        n.appendChild(link(LIC.buyUrl('yearly'), 'Pro'));
+        n.appendChild(document.createTextNode('.'));
+        extra.appendChild(n);
+      }
+    }
+
+    const form = el('form', 'plsi-track-form');
+    const input = el('input', 'plsi-input');
+    input.type = 'text';
+    input.placeholder = 'Keyword to follow';
+    input.addEventListener('keydown', (ev) => ev.stopPropagation());
+    const gls = [...new Set([state.kw.gl, ...state.countries])];
+    const glSel = select(gls.map((g) => [g, g]), gls[0], () => {}, 'Country of the search');
+    const add = el('button', 'plsi-btn plsi-btn-main', 'Follow');
+    add.type = 'submit';
+    form.append(input, glSel, add);
+    form.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      if (!input.value.trim()) return;
+      add.disabled = true;
+      note.textContent = 'Looking it up…';
+      const r = await addTrack(app.id, input.value, glSel.value);
+      add.disabled = false;
+      note.textContent = '';
+      if (r.ok) {
+        input.value = '';
+        note.textContent = r.rank ? 'Now at #' + r.rank + '.' : 'Not among the first ' + P.RANK_DEPTH + ' results yet.';
+        load();
+      } else if (r.why === 'limit' && !isPro()) {
+        note.appendChild(upsell('More keywords', 'The free plan follows ' + lim().rankPairs + ' keyword–country pairs.'));
+      } else {
+        note.textContent = trackProblem(r.why);
+      }
+    });
+
+    const bar = el('div', 'plsi-actions');
+    bar.appendChild(
+      button('Check now', 'Look up today’s place of every keyword', async (ev, b) => {
+        b.disabled = true;
+        note.textContent = 'Checking…';
+        await refreshTracks(app.id);
+        note.textContent = '';
+        b.disabled = false;
+        load();
+      })
+    );
+    sec.append(list, extra, form, bar, note);
+    trackViews.set(app.id, load);
+    load();
   }
 
   // ---------- drawer: the same app in other countries ----------
@@ -2111,6 +2490,326 @@
     load();
   }
 
+  // ---------- compare: a few apps side by side ----------
+
+  const CMP_ROWS = ['downloads', 'perday', 'now', 'rating', 'reviews', 'rate', 'low', 'updated', 'age', 'money', 'genre', 'version', 'minAndroid'];
+  // 1 when a bigger number is better, -1 when a smaller one is, 0 when neither is
+  const CMP_BEST = { downloads: 1, perday: 1, now: 1, rating: 1, reviews: 1, rate: 1, low: -1, updated: 1 };
+  // Colour alone is not enough to tell lines apart, so every series also gets
+  // its own dash pattern and end-marker shape.
+  const DASHES = ['', '7 3', '2 3', '8 3 2 3', '1 4', '12 4'];
+
+  let cmpView = null;
+
+  const cmpHist = (id) => {
+    const live = state.apps.get(id);
+    return live && live.hist && live.hist.length ? live.hist : state.hist.get(id) || [];
+  };
+
+  // Compare works on apps from the page, the watchlist or the recent list.
+  function cmpApp(id) {
+    const live = state.apps.get(id);
+    if (live && live.info) return { ...live, hist: cmpHist(id) };
+    const src = state.watch.get(id) || state.recent.find((r) => r.id === id);
+    if (src) return { id, name: src.name, icon: src.icon, info: src.info, hist: cmpHist(id), order: 0, status: 'ok' };
+    return { id, name: live?.name || id, icon: live?.icon, info: null, hist: cmpHist(id), order: 0, status: 'loading' };
+  }
+
+  const cmpIds = () => state.cmp.slice(0, lim().compare);
+
+  function toggleCmp(app) {
+    const i = state.cmp.indexOf(app.id);
+    if (i >= 0) {
+      state.cmp.splice(i, 1);
+    } else if (state.cmp.length >= lim().compare) {
+      toast(
+        isPro()
+          ? 'Compare holds up to ' + lim().compare + ' apps.'
+          : 'The free plan compares ' + lim().compare + ' apps; Pro compares ' + P.license.LIMITS.pro.compare + ' and draws charts.',
+        !isPro()
+      );
+      return;
+    } else {
+      state.cmp.push(app.id);
+    }
+    renderPanel();
+  }
+
+  async function loadCmpHist() {
+    const ids = cmpIds().filter((id) => !state.hist.has(id));
+    if (!ids.length) return;
+    const got = await storageGet('local', ids.map((id) => 'h:' + id));
+    for (const id of ids) state.hist.set(id, got['h:' + id] || []);
+    schedulePanelRender();
+  }
+
+  function svgEl(tag, attrs, cls) {
+    const e = document.createElementNS(SVG_NS, tag);
+    for (const [k, v] of Object.entries(attrs || {})) e.setAttribute(k, String(v));
+    if (cls) e.setAttribute('class', cls);
+    return e;
+  }
+
+  // One end-marker per series, each a different shape.
+  function marker(i, cx, cy, r, cls) {
+    const c = 'plsi-mark ' + (cls || '') + ' plsi-s' + i;
+    const pts = (list) => list.map(([x, y]) => (cx + x * r).toFixed(1) + ',' + (cy + y * r).toFixed(1)).join(' ');
+    switch (i % 6) {
+      case 0:
+        return svgEl('circle', { cx, cy, r }, c);
+      case 1:
+        return svgEl('rect', { x: cx - r, y: cy - r, width: 2 * r, height: 2 * r }, c);
+      case 2:
+        return svgEl('polygon', { points: pts([[0, -1.2], [1.1, 0.9], [-1.1, 0.9]]) }, c);
+      case 3:
+        return svgEl('polygon', { points: pts([[0, -1.3], [1.3, 0], [0, 1.3], [-1.3, 0]]) }, c);
+      case 4:
+        return svgEl(
+          'polygon',
+          { points: pts([[-0.4, -1.2], [0.4, -1.2], [0.4, -0.4], [1.2, -0.4], [1.2, 0.4], [0.4, 0.4], [0.4, 1.2], [-0.4, 1.2], [-0.4, 0.4], [-1.2, 0.4], [-1.2, -0.4], [-0.4, -0.4]]) },
+          c
+        );
+      default:
+        return svgEl('polygon', { points: pts([[-1, -0.6], [0, -1.2], [1, -0.6], [1, 0.6], [0, 1.2], [-1, 0.6]]) }, c);
+    }
+  }
+
+  // series: [{ i, name, pts: [[unixSeconds, value], …] }]
+  function lineChart(title, series, fmt) {
+    const box = el('div', 'plsi-chart');
+    box.appendChild(el('div', 'plsi-sec-title', title));
+    const W = 320;
+    const H = 150;
+    const L = 36;
+    const R = 46;
+    const T = 8;
+    const B = 18;
+    const flat = series.flatMap((s) => s.pts);
+    const x0 = Math.min(...flat.map((p) => p[0]));
+    const x1 = Math.max(...flat.map((p) => p[0]));
+    let y0 = Math.min(...flat.map((p) => p[1]));
+    let y1 = Math.max(...flat.map((p) => p[1]));
+    if (y1 === y0) {
+      y0 -= 1;
+      y1 += 1;
+    } else {
+      const pad = (y1 - y0) * 0.08;
+      y0 -= pad;
+      y1 += pad;
+    }
+    const px = (x) => L + (x1 === x0 ? 0 : ((x - x0) / (x1 - x0)) * (W - L - R));
+    const py = (y) => T + (1 - (y - y0) / (y1 - y0)) * (H - T - B);
+
+    const svg = svgEl('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': title + ': ' + series.map((s) => s.name).join(', ') });
+    for (let k = 0; k < 4; k++) {
+      const v = y0 + ((y1 - y0) * k) / 3;
+      const y = py(v).toFixed(1);
+      svg.appendChild(svgEl('line', { x1: L, x2: W - R, y1: y, y2: y }, 'plsi-grid'));
+      const t = svgEl('text', { x: L - 4, y: +y + 3, 'text-anchor': 'end' }, 'plsi-axis');
+      t.textContent = fmt(v);
+      svg.appendChild(t);
+    }
+    for (const [x, anchor] of [[L, 'start'], [W - R, 'end']]) {
+      const t = svgEl('text', { x, y: H - 4, 'text-anchor': anchor }, 'plsi-axis');
+      t.textContent = shortDate((x === L ? x0 : x1) * 1000);
+      svg.appendChild(t);
+    }
+    // end labels, nudged apart so they never sit on each other
+    const ends = series.map((s) => ({ s, y: py(s.pts[s.pts.length - 1][1]) })).sort((a, b) => a.y - b.y);
+    for (let k = 1; k < ends.length; k++) ends[k].ly = Math.max(ends[k].y, (ends[k - 1].ly ?? ends[k - 1].y) + 11);
+    if (ends.length) ends[0].ly = ends[0].y;
+    for (const s of series) {
+      svg.appendChild(
+        svgEl('polyline', {
+          points: s.pts.map((p) => px(p[0]).toFixed(1) + ',' + py(p[1]).toFixed(1)).join(' '),
+          ...(DASHES[s.i] ? { 'stroke-dasharray': DASHES[s.i] } : {}),
+        }, 'plsi-line plsi-s' + s.i)
+      );
+    }
+    const cross = svgEl('line', { x1: 0, x2: 0, y1: T, y2: H - B, visibility: 'hidden' }, 'plsi-cross');
+    svg.appendChild(cross);
+    for (const e of ends) {
+      const last = e.s.pts[e.s.pts.length - 1];
+      svg.appendChild(marker(e.s.i, px(last[0]), py(last[1]), 4));
+      const t = svgEl('text', { x: px(last[0]) + 9, y: e.ly + 3 }, 'plsi-axis');
+      t.textContent = fmt(last[1]);
+      svg.appendChild(t);
+    }
+    box.appendChild(svg);
+
+    const tip = el('div', 'plsi-chart-tip plsi-hidden');
+    box.appendChild(tip);
+    const nearest = (s, t) => s.pts.reduce((b, p) => (Math.abs(p[0] - t) < Math.abs(b[0] - t) ? p : b), s.pts[0]);
+    svg.addEventListener('pointermove', (ev) => {
+      const rect = svg.getBoundingClientRect();
+      const sx = ((ev.clientX - rect.left) / rect.width) * W;
+      const t = x0 + ((Math.min(Math.max(sx, L), W - R) - L) / (W - L - R)) * (x1 - x0);
+      const day = nearest(series[0], t)[0];
+      let best = day;
+      for (const s of series) {
+        const p = nearest(s, t);
+        if (Math.abs(p[0] - t) < Math.abs(best - t)) best = p[0];
+      }
+      cross.setAttribute('x1', px(best).toFixed(1));
+      cross.setAttribute('x2', px(best).toFixed(1));
+      cross.setAttribute('visibility', 'visible');
+      tip.textContent = '';
+      tip.appendChild(el('b', null, shortDate(best * 1000)));
+      for (const s of series) {
+        const p = nearest(s, best);
+        const row = el('div');
+        row.appendChild(el('span', null, s.name));
+        row.appendChild(el('span', null, fmt(p[1])));
+        tip.appendChild(row);
+      }
+      tip.classList.remove('plsi-hidden');
+      const left = ((px(best) / W) * rect.width);
+      tip.style.left = Math.max(0, Math.min(left + 10, rect.width - tip.offsetWidth)) + 'px';
+    });
+    svg.addEventListener('pointerleave', () => {
+      cross.setAttribute('visibility', 'hidden');
+      tip.classList.add('plsi-hidden');
+    });
+
+    const legend = el('div', 'plsi-legend');
+    for (const s of series) {
+      const item = el('span');
+      const mini = svgEl('svg', { viewBox: '0 0 26 8', 'aria-hidden': 'true' });
+      mini.appendChild(svgEl('line', { x1: 0, x2: 26, y1: 4, y2: 4, ...(DASHES[s.i] ? { 'stroke-dasharray': DASHES[s.i] } : {}) }, 'plsi-line plsi-s' + s.i));
+      mini.appendChild(marker(s.i, 13, 4, 3));
+      item.appendChild(mini);
+      item.appendChild(el('span', null, s.name));
+      legend.appendChild(item);
+    }
+    box.appendChild(legend);
+
+    // the same numbers as a table, for anyone who cannot read the lines
+    const details = el('details');
+    details.appendChild(el('summary', 'plsi-note', 'Data table'));
+    const dt = el('table', 'plsi-data-table');
+    const head = el('tr');
+    head.appendChild(el('th', null, 'Day'));
+    for (const s of series) head.appendChild(el('th', null, s.name));
+    dt.appendChild(head);
+    const days = [...new Set(flat.map((p) => Math.floor(p[0] / 86400)))].sort((a, b) => b - a).slice(0, 30);
+    for (const d of days) {
+      const tr = el('tr');
+      tr.appendChild(el('td', null, shortDate(d * 86400000)));
+      for (const s of series) {
+        const p = s.pts.find((q) => Math.floor(q[0] / 86400) === d);
+        tr.appendChild(el('td', null, p ? fmt(p[1]) : '—'));
+      }
+      dt.appendChild(tr);
+    }
+    details.appendChild(dt);
+    box.appendChild(details);
+    return box;
+  }
+
+  function buildCompareTable(apps) {
+    const wrap = el('div', 'plsi-cmp-wrap');
+    const t = el('table', 'plsi-cmp-table');
+    const hr = el('tr');
+    hr.appendChild(el('th'));
+    for (const a of apps) {
+      const th = el('th');
+      const box = el('div', 'plsi-cmp-app');
+      box.title = a.name || a.id;
+      box.appendChild(el('span', null, a.name || a.id));
+      th.appendChild(box);
+      hr.appendChild(th);
+    }
+    const thead = el('thead');
+    thead.appendChild(hr);
+    t.appendChild(thead);
+    const body = el('tbody');
+    for (const key of CMP_ROWS) {
+      const col = COLS.find((c) => c.key === key);
+      if (!col) continue;
+      const vals = apps.map((a) => (a.info ? col.val(a) : null));
+      const best = P.bestIndexes(vals.map((v) => (typeof v === 'number' ? v : null)), CMP_BEST[key] || 0);
+      const tr = el('tr');
+      tr.appendChild(el('th', null, col.tip));
+      apps.forEach((a, i) => {
+        const td = el('td', best.includes(i) ? 'plsi-best' : null);
+        if (!a.info) td.textContent = '…';
+        else if (col.cell) {
+          if (!col.cell(td, a)) td.textContent = '—';
+        } else td.textContent = col.text(a) ?? '—';
+        tr.appendChild(td);
+      });
+      body.appendChild(tr);
+    }
+    t.appendChild(body);
+    wrap.appendChild(t);
+    return wrap;
+  }
+
+  function renderCompare() {
+    if (!cmpView) return;
+    cmpView.textContent = '';
+    const ids = cmpIds();
+    const apps = ids.map(cmpApp);
+    if (panelCount) panelCount.textContent = String(apps.length);
+
+    const head = el('div', 'plsi-cmp-head');
+    head.appendChild(button('← Back', 'Return to the list', () => setView(state.prevView || 'page')));
+    head.appendChild(
+      button('Clear', 'Empty the comparison', () => {
+        state.cmp = [];
+        setView(state.prevView || 'page');
+      })
+    );
+    cmpView.appendChild(head);
+
+    const chips = el('div', 'plsi-cmp-chips');
+    for (const a of apps) {
+      const chip = el('span', 'plsi-cmp-chip', (a.name || a.id) + ' ');
+      chip.appendChild(
+        button('✕', 'Take this app out', () => {
+          state.cmp = state.cmp.filter((x) => x !== a.id);
+          renderPanel();
+        }, 'plsi-btn-sm')
+      );
+      chips.appendChild(chip);
+    }
+    cmpView.appendChild(chips);
+
+    if (apps.length < 2) {
+      cmpView.appendChild(el('div', 'plsi-note', 'Pick at least two apps with ⇄ in the list to put them side by side.'));
+      return;
+    }
+    cmpView.appendChild(buildCompareTable(apps));
+
+    if (!isPro()) {
+      cmpView.appendChild(
+        upsell(
+          'Charts over time',
+          'Installs and rating of up to ' + P.license.LIMITS.pro.compare + ' apps drawn on one chart, from this device’s daily record.'
+        )
+      );
+      return;
+    }
+    const idx = [];
+    const rat = [];
+    const thin = [];
+    apps.forEach((a, i) => {
+      const name = a.name || a.id;
+      const s1 = P.indexSeries(a.hist);
+      const s2 = P.ratingSeries(a.hist);
+      if (s1) idx.push({ i, name, pts: s1 });
+      else thin.push(name);
+      if (s2) rat.push({ i, name, pts: s2 });
+    });
+    if (idx.length) cmpView.appendChild(lineChart('Installs, first day on record = 100', idx, (v) => String(Math.round(v))));
+    if (rat.length) cmpView.appendChild(lineChart('Average rating', rat, (v) => v.toFixed(2)));
+    if (thin.length) {
+      cmpView.appendChild(
+        el('div', 'plsi-note', 'Not enough history yet for ' + thin.join(', ') + ' — the line appears once this device has two daily snapshots.')
+      );
+    }
+  }
+
   // ---------- keywords view ----------
 
   async function suggest(term, gl) {
@@ -2162,21 +2861,85 @@
     item.score = 'busy';
     renderKeywords();
     try {
-      const res = await run(() => fetch(P.searchUrl(item.term, state.kw.gl), { credentials: 'omit' }));
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const ids = P.searchIds(await res.text(), 10);
-      const infos = await Promise.all(
-        ids.map((id) =>
-          run(() => getInfo(id))
-            .then((r) => r.info)
-            .catch(() => null)
-        )
-      );
-      item.score = P.opportunity(infos) || 'none';
-      item.sum = P.summarize(infos);
+      const r = await scoreIn(item.term, state.kw.gl);
+      item.score = r.score;
+      item.sum = r.sum;
     } catch {
       item.score = 'error';
     }
+    renderKeywords();
+  }
+
+  // How open the first ten results of a search look, in one country.
+  async function scoreIn(term, gl) {
+    const res = await run(() => fetch(P.searchUrl(term, gl), { credentials: 'omit' }));
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const ids = P.searchIds(await res.text(), 10);
+    const infos = await Promise.all(
+      ids.map((id) =>
+        run(() => getInfo(id))
+          .then((r) => r.info)
+          .catch(() => null)
+      )
+    );
+    return { score: P.opportunity(infos) || 'none', sum: P.summarize(infos) };
+  }
+
+  // Pro: the same term scored in each of the chosen countries.
+  async function scoreCountries(item) {
+    const gls = [...new Set([state.kw.gl, ...state.countries])];
+    item.multi = Object.fromEntries(gls.map((g) => [g, 'busy']));
+    renderKeywords();
+    for (const gl of gls) {
+      try {
+        const r = await scoreIn(item.term, gl);
+        item.multi[gl] = r.score;
+        if (gl === state.kw.gl && !(item.score && typeof item.score === 'object')) {
+          item.score = r.score;
+          item.sum = r.sum;
+        }
+      } catch {
+        item.multi[gl] = 'error';
+      }
+      renderKeywords();
+    }
+  }
+
+  async function trackFromRow(item) {
+    const id = state.watch.has(state.kw.trackApp) ? state.kw.trackApp : [...state.watch.keys()][0];
+    if (!id) return;
+    const r = await addTrack(id, item.term, state.kw.gl);
+    toast(
+      r.ok
+        ? 'Following “' + item.term + '” — ' + (r.rank ? 'now #' + r.rank : 'not in the top ' + P.RANK_DEPTH + ' yet') + '.'
+        : trackProblem(r.why),
+      r.why === 'limit' && !isPro()
+    );
+  }
+
+  function saveList() {
+    const name = (state.kw.seed.trim() || 'keywords') + ' · ' + state.kw.gl;
+    state.kwl = P.saveKeywordList(state.kwl, name, state.kw.gl, state.kw.items, Date.now(), lim().kwLists);
+    storageSet('local', { [P.KW_LISTS_KEY]: state.kwl });
+    state.kw.listName = name;
+    toast('Saved “' + name + '”.');
+    renderKeywords();
+  }
+
+  function loadList(name) {
+    const l = state.kwl.find((x) => x.name === name);
+    state.kw.listName = l ? name : '';
+    if (!l) return renderKeywords();
+    state.kw.gl = l.gl || state.kw.gl;
+    state.kw.items = l.items.map((x) => ({ term: x.term, score: null, was: x.score }));
+    state.kw.note = '“' + l.name + '” — ' + l.items.length + ' terms saved ' + shortDate(l.t) + '. Scores shown are from then.';
+    renderPanel();
+  }
+
+  function dropList() {
+    state.kwl = state.kwl.filter((x) => x.name !== state.kw.listName);
+    storageSet('local', { [P.KW_LISTS_KEY]: state.kwl });
+    state.kw.listName = '';
     renderKeywords();
   }
 
@@ -2216,9 +2979,14 @@
   let kwNote = null;
   let kwList = null;
   let kwActions = null;
+  let kwTools = null;
+  let kwToolsSig = '';
+  let kwBuiltPro = false;
 
   function buildKeywords() {
     kwView.textContent = '';
+    kwToolsSig = '';
+    kwBuiltPro = isPro();
     const form = el('form', 'plsi-kw-form');
     kwInput = el('input', 'plsi-input');
     kwInput.type = 'text';
@@ -2254,7 +3022,16 @@
     kwActions.appendChild(
       button('CSV', 'Save the terms and their scores', () => downloadCsv('playlens-keywords-' + slug(state.kw.seed) + '-' + stamp() + '.csv', keywordCsv()))
     );
+    kwActions.appendChild(
+      proButton('Score all', 'Score every term, not only the first ten', () => scoreFirst(state.kw.items.length))
+    );
+    kwActions.appendChild(
+      proButton('Save list', 'Keep this list of terms and their scores', saveList)
+    );
     kwView.appendChild(kwActions);
+
+    kwTools = el('div', 'plsi-kw-tools');
+    kwView.appendChild(kwTools);
 
     kwNote = el('div', 'plsi-note');
     kwView.appendChild(kwNote);
@@ -2263,12 +3040,41 @@
     kwBuilt = true;
   }
 
+  // Saved lists and the app that follows keywords; rebuilt only when they change
+  // so an open drop-down is not closed under the user's hand.
+  function renderKwTools() {
+    const sig = JSON.stringify([isPro(), state.kwl.map((l) => l.name), [...state.watch.keys()], state.kw.trackApp, state.kw.listName]);
+    if (sig === kwToolsSig) return;
+    kwToolsSig = sig;
+    kwTools.textContent = '';
+    if (isPro() && state.kwl.length) {
+      kwTools.appendChild(
+        select([['', 'Saved lists…'], ...state.kwl.map((l) => [l.name, l.name])], state.kw.listName, loadList, 'Open a list you saved')
+      );
+      if (state.kw.listName) kwTools.appendChild(button('✕', 'Delete this saved list', dropList, 'plsi-btn-sm'));
+    }
+    if (state.watch.size) {
+      const ids = [...state.watch.keys()];
+      if (!ids.includes(state.kw.trackApp)) state.kw.trackApp = ids[0];
+      kwTools.appendChild(el('span', 'plsi-note', 'Follow for'));
+      kwTools.appendChild(
+        select(
+          ids.map((id) => [id, state.watch.get(id).name || id]),
+          state.kw.trackApp,
+          (v) => (state.kw.trackApp = v),
+          'The watched app whose place in a search to follow'
+        )
+      );
+    }
+  }
+
   function renderKeywords() {
     if (!kwView) return;
-    if (!kwBuilt || !kwView.contains(kwInput)) buildKeywords();
+    if (!kwBuilt || !kwView.contains(kwInput) || kwBuiltPro !== isPro()) buildKeywords();
     if (document.activeElement !== kwInput && kwInput.value !== state.kw.seed) kwInput.value = state.kw.seed;
     const kw = state.kw;
     kwActions.classList.toggle('plsi-hidden', !kw.items.length);
+    renderKwTools();
     kwNote.textContent =
       kw.note ||
       'Type a word and Play’s own search suggestions are listed here. Score a term to see how open its first ten results look.';
@@ -2286,12 +3092,27 @@
           row.appendChild(el('span', 'plsi-muted', P.compact(item.sum.medInstalls) + ' median · ' + P.ageLabel(item.sum.medAgeDays)));
         }
         row.appendChild(scorePill(s));
+        if (state.watch.size) row.appendChild(button('Track', 'Follow where the chosen app ranks for this term', () => trackFromRow(item), 'plsi-btn-sm'));
+        row.appendChild(
+          proButton('Countries', 'Score this term in ' + state.countries.join(', '), () => scoreCountries(item), 'plsi-btn-sm', true)
+        );
       } else if (s === 'busy') {
         row.appendChild(el('span', 'plsi-note', 'reading…'));
       } else {
         if (s === 'error') row.appendChild(el('span', 'plsi-row-error', 'failed'));
         if (s === 'none') row.appendChild(el('span', 'plsi-muted', 'too few results'));
+        if (item.was != null) row.appendChild(el('span', 'plsi-muted', 'was ' + item.was));
         row.appendChild(button('Score', 'Read the first ten results of this term', () => scoreKeyword(item), 'plsi-btn-sm'));
+        if (state.watch.size) row.appendChild(button('Track', 'Follow where the chosen app ranks for this term', () => trackFromRow(item), 'plsi-btn-sm'));
+      }
+      if (item.multi) {
+        const more = el('div', 'plsi-kw-more');
+        for (const [gl, v] of Object.entries(item.multi)) {
+          more.appendChild(
+            el('span', null, gl + ' ' + (v && typeof v === 'object' ? v.score : v === 'busy' ? '…' : v === 'error' ? 'failed' : '—'))
+          );
+        }
+        row.appendChild(more);
       }
       kwList.appendChild(row);
     }
@@ -2664,7 +3485,7 @@
   // ---------- boot ----------
 
   (async () => {
-    await Promise.all([loadFlags(), loadRecent(), loadWatch()]);
+    await Promise.all([loadFlags(), loadRecent(), loadWatch(), loadLicense(), loadKwl()]);
     watchStorage();
     applyFlags();
     observer.observe(document.documentElement, { childList: true, subtree: true });

@@ -157,13 +157,72 @@
       font-size: 12.5px;
       color: var(--muted);
     }
-    .foot a { color: var(--accent); }
+    .foot a, .desc a { color: var(--accent); }
+    .pro-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .badge {
+      padding: 1px 8px;
+      border-radius: 999px;
+      background: var(--border);
+      color: var(--fg);
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge.on { background: var(--accent); color: var(--accent-fg); }
+    .keyline { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+    .keyline input { margin-top: 0; flex: 1; min-width: 0; }
+    button.primary { background: var(--accent); color: var(--accent-fg); border-color: transparent; }
+    button.primary:hover { background: var(--accent); opacity: 0.9; }
+    button:disabled { opacity: 0.5; cursor: default; }
+    .plans { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .plans a, .plans span {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--fg);
+      font-size: 13px;
+      text-decoration: none;
+    }
+    .plans a:hover { background: var(--bg); }
+    .plans .soon { color: var(--muted); }
+    [hidden] { display: none !important; }
+    .row.off { opacity: 0.55; }
+    .err { color: #b3261e; }
+    @media (prefers-color-scheme: dark) { .err { color: #f2b8b5; } }
   </style>
 </head>
 <body>
   <div class="wrap">
     <h1>PlayLens</h1>
     <p class="sub">Cài đặt hiển thị — áp dụng ngay trên các tab Google Play đang mở, không cần reload.</p>
+
+    <h2 id="pro">PlayLens Pro</h2>
+    <div class="card">
+      <div class="row field">
+        <span class="text">
+          <div class="pro-head"><span class="name" id="proTitle">Gói Free</span><span class="badge" id="proBadge">Free</span></div>
+          <div class="desc" id="proDesc"></div>
+          <div class="keyline" id="keyForm">
+            <input type="text" id="licKey" spellcheck="false" autocomplete="off" placeholder="PLAY-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" aria-label="Khóa bản quyền" />
+            <button class="primary" id="licGo">Kích hoạt</button>
+          </div>
+          <div class="keyline" id="keyHave" hidden>
+            <code id="licMask"></code>
+            <button id="licOff">Gỡ khóa khỏi máy này</button>
+          </div>
+          <div class="status" id="licStatus" role="status"></div>
+          <div class="plans" id="plans"></div>
+          <div class="desc" style="margin-top:10px">Pro mở: Rank Tracker tới 150 cặp từ khóa/quốc gia với lịch sử 90 ngày, cảnh báo, so sánh tới 6 app có biểu đồ, báo cáo và sao lưu Watchlist, danh sách từ khóa, chấm điểm hàng loạt, điểm cơ hội theo quốc gia. 24 tính năng còn lại luôn miễn phí. Thanh toán và hóa đơn do <a href="https://polar.sh" target="_blank" rel="noopener">Polar</a> xử lý; khóa gửi tới <code>api.polar.sh</code> để kiểm tra, không gửi gì khác.</div>
+        </span>
+      </div>
+      <label class="row" id="alertsRow">
+        <span class="text">
+          <span class="name">Cảnh báo trên màn hình (Pro)</span>
+          <div class="desc">Thông báo khi một từ khóa trong Rank Tracker lên/xuống hạng. Bật sẽ hỏi quyền <code>notifications</code>; tắt thì PlayLens không gửi thông báo nào.</div>
+          <div class="status" id="alertsStatus"></div>
+        </span>
+        <span class="switch"><input type="checkbox" id="alerts" /><span class="slider"></span></span>
+      </label>
+    </div>
 
     <h2>Chế độ hiển thị</h2>
     <div class="card" id="flags">
@@ -273,6 +332,8 @@
       Mã nguồn: <a href="https://github.com/fighttechvn/playlens" target="_blank" rel="noopener">github.com/fighttechvn/playlens</a>
     </p>
   </div>
+  <script src="core.js"></script>
+  <script src="license.js"></script>
   <script src="options.js"></script>
 </body>
 </html>
