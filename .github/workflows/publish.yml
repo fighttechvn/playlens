@@ -1,14 +1,29 @@
 name: Publish to Chrome Web Store
 
+# Ship flow:  claude/* → develop → uat → main.
+#
+# Bump "version" in manifest.json and merge to main: this workflow builds the
+# zip, uploads it to the Chrome Web Store, tags vX.Y.Z and attaches the zip to a
+# GitHub release. Pages (docs/) redeploys from main on its own.
+#
+# Upload only, or upload + submit for review?
+#   - repository variable CWS_AUTO_SUBMIT=true → submit for review automatically
+#   - otherwise a draft is uploaded; finish it in the dashboard
+#   - a manual run ("Run workflow") chooses with the checkbox
+#   - publishing a GitHub release by hand always submits
+#
 # Only works once the item exists and its listing is complete — the Chrome Web
 # Store API moves packages but cannot write listing text, screenshots or the
-# privacy declarations. Do the first submission by hand (store/listing.md),
-# then this workflow handles every version after it.
+# privacy declarations. Do the first submission by hand (store/listing.md).
 #
 # Requires four repository secrets: CWS_CLIENT_ID, CWS_CLIENT_SECRET,
-# CWS_REFRESH_TOKEN, CWS_ITEM_ID. See store/api-publishing.md.
+# CWS_REFRESH_TOKEN, CWS_ITEM_ID. `node tools/cws-setup.js` creates them.
+# See store/api-publishing.md.
 
 on:
+  push:
+    branches: [main]
+    paths: [manifest.json]
   release:
     types: [published]
   workflow_dispatch:
@@ -17,6 +32,9 @@ on:
         description: "Submit for review (otherwise upload as a draft)"
         type: boolean
         default: false
+
+permissions:
+  contents: write
 
 concurrency:
   group: cws-publish
@@ -28,26 +46,41 @@ jobs:
     # release/published. Chỉ release chính thức (vX.Y.Z) mới được lên store.
     if: github.event_name != 'release' || github.event.release.prerelease == false
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      CWS_CLIENT_ID: ${{ secrets.CWS_CLIENT_ID }}
+      CWS_CLIENT_SECRET: ${{ secrets.CWS_CLIENT_SECRET }}
+      CWS_REFRESH_TOKEN: ${{ secrets.CWS_REFRESH_TOKEN }}
+      CWS_ITEM_ID: ${{ secrets.CWS_ITEM_ID }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Read the version
+        id: ver
+        run: |
+          version=$(python3 -c "import json;print(json.load(open('manifest.json'))['version'])")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+          echo "v$version"
+
+          # A push to main only ships a version that has no release yet, so a
+          # docs-only or revert merge that touches manifest.json can't re-upload.
+          if [[ "${{ github.event_name }}" == "push" ]] && gh release view "v$version" >/dev/null 2>&1; then
+            echo "::notice::v$version already has a release — nothing to ship."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Check the release tag matches the manifest version
         if: github.event_name == 'release'
         run: |
-          manifest=$(python3 -c "import json;print(json.load(open('manifest.json'))['version'])")
           tag="${GITHUB_REF_NAME#v}"
-          if [[ "$manifest" != "$tag" ]]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match manifest version $manifest"
+          if [[ "${{ steps.ver.outputs.version }}" != "$tag" ]]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match manifest version ${{ steps.ver.outputs.version }}"
             exit 1
           fi
-          echo "v$manifest"
 
-      - name: Upload to the Chrome Web Store
-        env:
-          CWS_CLIENT_ID: ${{ secrets.CWS_CLIENT_ID }}
-          CWS_CLIENT_SECRET: ${{ secrets.CWS_CLIENT_SECRET }}
-          CWS_REFRESH_TOKEN: ${{ secrets.CWS_REFRESH_TOKEN }}
-          CWS_ITEM_ID: ${{ secrets.CWS_ITEM_ID }}
+      - name: Check the Chrome Web Store secrets
+        id: cfg
         run: |
           # Until the first manual submission the store item has no listing, so
           # the secrets don't exist yet — say so and stop, rather than failing
@@ -57,21 +90,40 @@ jobs:
             [[ -n "$v" ]] && set=$((set + 1))
           done
           if (( set == 0 )); then
-            echo "::notice::Chrome Web Store secrets are not configured — skipping the upload. See store/api-publishing.md."
-            ./build.sh   # the release still gets its zip attached below
-            exit 0
+            echo "::notice::Chrome Web Store secrets are not configured — skipping the upload. Run: node tools/cws-setup.js"
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          elif (( set < 4 )); then
+            echo "::error::Only $set of 4 CWS_* secrets are set. Run: node tools/cws-setup.js"
+            exit 1
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Build
+        if: steps.ver.outputs.skip != 'true'
+        run: ./build.sh   # a release gets its zip even before the store is wired up
+
+      - name: Upload to the Chrome Web Store
+        if: steps.ver.outputs.skip != 'true' && steps.cfg.outputs.configured == 'true'
+        run: |
           # Publishing a GitHub release is already the deliberate "ship it"
-          # gesture, so it submits. A manual run has to opt in.
-          if [[ "${{ github.event_name }}" == "release" || "${{ inputs.submit }}" == "true" ]]; then
+          # gesture, so it submits. A push to main submits only when
+          # CWS_AUTO_SUBMIT is on; a manual run has to opt in.
+          if [[ "${{ github.event_name }}" == "release" \
+             || "${{ inputs.submit }}" == "true" \
+             || ( "${{ github.event_name }}" == "push" && "${{ vars.CWS_AUTO_SUBMIT }}" == "true" ) ]]; then
             ./tools/publish.sh --publish
           else
             ./tools/publish.sh
           fi
 
+      - name: Tag and release on GitHub
+        if: github.event_name == 'push' && steps.ver.outputs.skip != 'true' && steps.cfg.outputs.configured == 'true'
+        run: |
+          gh release create "${{ steps.ver.outputs.tag }}" dist/playlens.zip \
+            --target "$GITHUB_SHA" --generate-notes \
+            --title "${{ steps.ver.outputs.tag }}"
+
       - name: Attach the uploaded package to the release
         if: github.event_name == 'release'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release upload "$GITHUB_REF_NAME" dist/playlens.zip --clobber
