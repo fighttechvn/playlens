@@ -35,13 +35,44 @@ function saveEnv(env) {
   fs.chmodSync(ENV_FILE, 0o600);
 }
 
+// Secret prompt: raw-mode read, prints "•" per character and nothing else, so a
+// pasted secret never shows up in the terminal or scrollback.
+function askHidden(question, fallback) {
+  return new Promise((resolve) => {
+    const { stdin, stdout } = process;
+    if (!stdin.isTTY) { // piped input: nothing to hide
+      const rl = readline.createInterface({ input: stdin });
+      rl.question('', (a) => { rl.close(); resolve(a.trim() || fallback); });
+      return;
+    }
+    let buf = '';
+    stdout.write(question);
+    readline.emitKeypressEvents(stdin);
+    stdin.setRawMode(true);
+    stdin.resume();
+    const done = () => {
+      stdin.setRawMode(false);
+      stdin.pause();
+      stdin.removeListener('keypress', onKey);
+      stdout.write('\n');
+      resolve(buf.trim() || fallback);
+    };
+    const onKey = (str, key = {}) => {
+      if (key.ctrl && key.name === 'c') { stdout.write('\n'); process.exit(130); }
+      if (key.name === 'return' || key.name === 'enter') return done();
+      if (key.name === 'backspace') { if (buf) { buf = buf.slice(0, -1); stdout.write('\b \b'); } return; }
+      if (str && !key.ctrl && !key.meta) { buf += str; stdout.write('•'.repeat([...str].length)); }
+    };
+    stdin.on('keypress', onKey);
+  });
+}
+
 function ask(question, { hidden = false, fallback = '' } = {}) {
+  if (hidden) return askHidden(question, fallback);
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout, terminal: true });
-  if (hidden) rl._writeToOutput = (s) => { if (s.includes(question)) process.stdout.write(s); };
   return new Promise((resolve) => {
     rl.question(question, (a) => {
       rl.close();
-      if (hidden) process.stdout.write('\n');
       resolve(a.trim() || fallback);
     });
   });
