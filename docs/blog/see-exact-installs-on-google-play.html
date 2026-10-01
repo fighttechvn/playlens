@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>How to see exact installs on Google Play — PlayLens</title>
+  <meta name="description" content="Google Play shows installs as buckets like 10M+. Here is how to read the exact number, the app age and installs per day for every app on a list page." />
+  <link rel="canonical" href="https://fighttechvn.github.io/playlens/blog/see-exact-installs-on-google-play.html" />
+  <meta name="author" content="FightTech VN" />
+  <meta property="og:title" content="How to see exact installs on Google Play — PlayLens" />
+  <meta property="og:description" content="Google Play shows installs as buckets like 10M+. Here is how to read the exact number, the app age and installs per day for every app on a list page." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://fighttechvn.github.io/playlens/blog/see-exact-installs-on-google-play.html" />
+  <meta property="og:image" content="https://fighttechvn.github.io/playlens/assets/screenshot-2-cards.png" />
+  <meta property="og:site_name" content="PlayLens" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="How to see exact installs on Google Play — PlayLens" />
+  <meta name="twitter:description" content="Google Play shows installs as buckets like 10M+. Here is how to read the exact number, the app age and installs per day for every app on a list page." />
+  <meta name="twitter:image" content="https://fighttechvn.github.io/playlens/assets/screenshot-2-cards.png" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔎</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap" />
+  <link rel="stylesheet" href="../site.css" />
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"How to see exact installs on Google Play","description":"Google Play shows installs as buckets like 10M+. Here is how to read the exact number, the app age and installs per day for every app on a list page.","image":"https://fighttechvn.github.io/playlens/assets/screenshot-2-cards.png","datePublished":"2026-10-01","dateModified":"2026-10-01","author":{"@type":"Organization","name":"FightTech VN"},"publisher":{"@type":"Organization","name":"FightTech VN"},"mainEntityOfPage":"https://fighttechvn.github.io/playlens/blog/see-exact-installs-on-google-play.html"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"PlayLens","item":"https://fighttechvn.github.io/playlens/"},{"@type":"ListItem","position":2,"name":"Guides","item":"https://fighttechvn.github.io/playlens/blog/"},{"@type":"ListItem","position":3,"name":"How to see exact installs on Google Play","item":"https://fighttechvn.github.io/playlens/blog/see-exact-installs-on-google-play.html"}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Does it work on developer pages and collections?","acceptedAnswer":{"@type":"Answer","text":"Yes. Any page that shows a grid or row of app cards: search, developer pages, categories, collections, “Similar apps” and the Play home page."}},{"@type":"Question","name":"Do I need an account?","acceptedAnswer":{"@type":"Answer","text":"No. There is no account and no analytics. Requests go straight to play.google.com and what is stored stays on your device."}}]}</script>
+</head>
+<body><nav class="nav" aria-label="Main">
+  <div class="wrap">
+    <a class="brand" href="../"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="13.5" cy="13.5" r="9" fill="none" stroke="currentColor" stroke-width="3"/><path d="M11 9.8v7.4l6.2-3.7z" fill="var(--accent)"/><path d="m20.5 20.5 7 7" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"/></svg>PlayLens</a>
+    <div class="links">
+      <a href="../index.html#features">Features</a>
+      <a href="../index.html#pricing">Pricing</a>
+      <a href="../blog/" aria-current="page">Blog</a>
+      <a href="../index.html#faq">FAQ</a>
+      <a href="https://github.com/fighttechvn/playlens">GitHub</a>
+    </div>
+    <a class="btn btn-primary btn-sm" href="https://chromewebstore.google.com/detail/playlens-%E2%80%93-app-stats-for/hnhlkgnfbcijmnaaclpliogmmnflekko">Add to Chrome</a>
+  </div>
+</nav>
+<div class="wrap">
+  <div class="crumbs"><a href="../">Home</a> / <a href="./">Guides</a> / How to see exact installs on Google Play</div>
+  <header class="post-head">
+    <span class="eyebrow">Basics</span>
+    <h1 style="margin-top:14px">How to see exact installs on Google Play</h1>
+    <p class="lede">Google Play shows installs as buckets like 10M+. Here is how to read the exact number, the app age and installs per day for every app on a list page.</p>
+    <div class="meta"><span>FightTech VN</span><span>Updated October 1, 2026</span><span>5 min read</span></div>
+  </header>
+  <div class="post-grid">
+    <aside class="toc" aria-label="On this page"><h4>On this page</h4><ol>
+      <li><a href="#bucket">Why Play only shows “10M+”</a></li>
+      <li><a href="#install">Turn it on</a></li>
+      <li><a href="#read">Reading the info line</a></li>
+      <li><a href="#perday">Two kinds of “installs per day”</a></li>
+      <li><a href="#export">Get the list into a spreadsheet</a></li>
+      <li><a href="#faq">Questions</a></li>
+    </ol></aside>
+    <article class="prose">
+<h2 id="bucket">Why Play only shows “10M+”</h2>
+<p>Every app page on Google Play shows its installs as a bucket: 1M+, 10M+, 50M+. An app with 10.2 million installs and one with 49 million both read <strong>10M+</strong> if they sit in the same bucket, which makes the number almost useless for comparing two apps.</p>
+<p>The exact figure is still in the page. Play's own data block for each app carries it, and the extension reads it for you.</p>
+<h2 id="install">Turn it on</h2>
+<ol>
+<li>Install PlayLens from the <a href="https://chromewebstore.google.com/detail/playlens-%E2%80%93-app-stats-for/hnhlkgnfbcijmnaaclpliogmmnflekko">Chrome Web Store</a> (free).</li>
+<li>Open any Google Play list page: a search, a developer page, a category or a collection.</li>
+<li>Under each app's rating a short info line appears. No clicking through to each app.</li>
+</ol>
+<figure><img src="../assets/screenshot-2-cards.png" alt="Google Play search results with PlayLens info lines under each card" loading="lazy" width="1280" height="800" /><figcaption>Search results for “focus timer”: rank, exact installs, rating count, update date and age under every card.</figcaption></figure>
+<h2 id="read">Reading the info line</h2>
+<p>A line looks like <code>#2 ⬇49.2M · 813K rv</code>, followed by <code>⟳ Sep 23, 2026</code> and <code>12y old · ~11.1K/day</code>.</p>
+<div class="tablewrap"><table>
+<tr><th>Part</th><th>Meaning</th></tr>
+<tr><td><code>#2</code></td><td>Position on a search result page, following the cards as they stand on screen.</td></tr>
+<tr><td><code>⬇49.2M</code></td><td>Exact installs instead of Play's bucket. You can switch it off to see the bucket again.</td></tr>
+<tr><td><code>813K rv</code></td><td>Number of ratings, read from the app page, so it is not rounded the way the card rounds it.</td></tr>
+<tr><td><code>⟳ Sep 23, 2026</code></td><td>Last update. Green within 6 months, amber within 18 months, red when older.</td></tr>
+<tr><td><code>12y old · ~11.1K/day</code></td><td>App age and average installs per day since launch.</td></tr>
+</table></div>
+<p>Apps released in the last 30 days are set in bold on a tint, and those under a year old in colour, so a new entrant stands out in a long list.</p>
+<h2 id="perday">Two kinds of “installs per day”</h2>
+<p>The figure on the card is an <strong>average over the app's whole life</strong>: installs divided by days since release. It is a fair way to compare apps of different ages, but a ten-year-old app that peaked years ago will look healthier than it is today.</p>
+<p>For the current trend, star an app to add it to your Watchlist. PlayLens keeps one snapshot a day and measures real growth from those snapshots. That figure needs at least two days of data, so it appears from the second day on. See <a href="watchlist-competitor-monitoring.html">the Watchlist guide</a>.</p>
+<div class="callout"><p><strong>Not revenue.</strong> Revenue can't be read from public pages, so PlayLens does not estimate it. Treat installs per day as a size and momentum signal only.</p></div>
+<h2 id="export">Get the list into a spreadsheet</h2>
+<p>Open the side panel with the button on the right edge of the page. The <strong>This page</strong> tab lists every app on the page. Click a header to sort, <strong>Columns</strong> to choose what to show, <strong>Filter</strong> to narrow by installs, rating, age or freshness, and <strong>Export</strong> to copy the table or download CSV or JSON with all fields.</p>
+<figure><img src="../assets/screenshot-1-panel.png" alt="PlayLens side panel with a sortable table of apps" loading="lazy" width="1280" height="800" /><figcaption>The side panel: a sortable table with a summary of the first ten results and an Open / Contested / Crowded verdict.</figcaption></figure>
+<h2 id="faq">Questions</h2>
+<h3>Does it work on developer pages and collections?</h3><p>Yes. Any page that shows a grid or row of app cards: search, developer pages, categories, collections, “Similar apps” and the Play home page.</p>
+<h3>Do I need an account?</h3><p>No. There is no account and no analytics. Requests go straight to play.google.com and what is stored stays on your device.</p>
+      <div class="cta-box">
+        <h3>Try it on a real Play page</h3>
+        <p>PlayLens is free, open source and needs no account.</p>
+        <a class="btn btn-primary" href="https://chromewebstore.google.com/detail/playlens-%E2%80%93-app-stats-for/hnhlkgnfbcijmnaaclpliogmmnflekko">Add to Chrome</a>
+      </div>
+    </article>
+  </div>
+  <section class="related"><h2>Keep reading</h2><div class="cards" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))"><a class="pcard" href="watchlist-competitor-monitoring.html"><img src="../assets/screenshot-4-watchlist.png" alt="" loading="lazy" width="1280" height="800" /><div class="b"><span class="k">Monitoring</span><h3>Monitor competitors with the PlayLens Watchlist</h3><p>Star an app and PlayLens notes version, name, price and rating changes and measures real installs per day. How to read it, report on it and back it up.</p><span class="m">6 min read</span></div></a><a class="pcard" href="google-play-keyword-research.html"><img src="../assets/screenshot-5-keywords.png" alt="" loading="lazy" width="1280" height="800" /><div class="b"><span class="k">Keywords</span><h3>Google Play keyword research with an opportunity score</h3><p>Turn Play’s own search suggestions into a ranked list. How the Open, Contested and Crowded verdict is calculated, and how to use it on real ideas.</p><span class="m">7 min read</span></div></a></div></section>
+</div>
+<footer class="foot">
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <a class="brand" href="../"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="13.5" cy="13.5" r="9" fill="none" stroke="currentColor" stroke-width="3"/><path d="M11 9.8v7.4l6.2-3.7z" fill="var(--accent)"/><path d="m20.5 20.5 7 7" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"/></svg>PlayLens</a>
+        <p class="about">Open-source Chrome extension for Google Play research. No account, no analytics, no servers of our own.</p>
+      </div>
+      <div><h4>Product</h4><ul>
+        <li><a href="../index.html#features">Features</a></li>
+        <li><a href="../index.html#pricing">Pricing</a></li>
+        <li><a href="https://chromewebstore.google.com/detail/playlens-%E2%80%93-app-stats-for/hnhlkgnfbcijmnaaclpliogmmnflekko">Chrome Web Store</a></li>
+        <li><a href="https://github.com/fighttechvn/playlens/releases/latest/download/playlens.zip">Download the zip</a></li>
+      </ul></div>
+      <div><h4>Guides</h4><ul>
+        <li><a href="../blog/">All guides</a></li>
+        <li><a href="../blog/see-exact-installs-on-google-play.html">Exact installs</a></li>
+        <li><a href="../blog/google-play-keyword-research.html">Keyword research</a></li>
+        <li><a href="../blog/track-keyword-rankings-google-play.html">Rank tracking</a></li>
+      </ul></div>
+      <div><h4>Project</h4><ul>
+        <li><a href="https://github.com/fighttechvn/playlens">Source code</a></li>
+        <li><a href="https://github.com/fighttechvn/playlens/issues">Report an issue</a></li>
+        <li><a href="../privacy.html">Privacy policy</a></li>
+        <li><a href="https://github.com/fighttechvn">FightTech VN</a></li>
+      </ul></div>
+    </div>
+    <p class="legal">PlayLens is MIT licensed. It is an independent project, not affiliated with, endorsed by or sponsored by Google. Google Play is a trademark of Google&nbsp;LLC. © 2026 FightTech VN.</p>
+  </div>
+</footer>
+</body>
+</html>

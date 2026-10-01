@@ -68,6 +68,16 @@ To run it from source instead:
 
 Creates `dist/playlens-v<version>.zip` (version read from `manifest.json`, runtime files only, no `.DS_Store`) — ready to upload to the Chrome Web Store or share. CI runs the same build when `develop` is merged into `uat` (see `.github/workflows/build.yml`).
 
+## Landing page and blog
+
+`docs/` is generated — do not edit the HTML by hand. Page chrome and the landing page live in `tools/site/` (`layout.js`, `home.js`), the guides in `tools/site/posts.js`, the look in `docs/site.css`.
+
+```bash
+node tools/build-site.js   # rewrites docs/*.html, docs/blog/, sitemap.xml, robots.txt
+```
+
+The Polar checkout links go in `CHECKOUT` inside `tools/site/home.js` (and in `license.js`); rebuild afterwards.
+
 ## Publishing
 
 The extension is live as item `hnhlkgnfbcijmnaaclpliogmmnflekko`; the listing text it was submitted with is in [store/listing.md](store/listing.md). The first submission had to be manual — the API can't create listing text or upload screenshots — but version updates are now one command:
