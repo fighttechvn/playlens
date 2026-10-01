@@ -7,20 +7,21 @@
   <meta name="description" content="Free Chrome extension showing exact installs, ratings, app age and last-updated dates on every app card in Google Play search, developer and collection lists." />
   <link rel="canonical" href="https://fighttechvn.github.io/playlens/" />
   <meta name="author" content="FightTech VN" />
-
   <meta property="og:title" content="PlayLens — App Stats for Google Play" />
-  <meta property="og:description" content="See exact installs, ratings, app age and last-updated dates for every app right on Google Play list pages. Free, open source, no tracking." />
+  <meta property="og:description" content="Free Chrome extension showing exact installs, ratings, app age and last-updated dates on every app card in Google Play search, developer and collection lists." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://fighttechvn.github.io/playlens/" />
   <meta property="og:image" content="https://fighttechvn.github.io/playlens/assets/demo.png" />
-  <meta property="og:image:alt" content="Google Play search results with install counts, ratings and update dates under every app card, plus a sortable side panel" />
   <meta property="og:site_name" content="PlayLens" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="PlayLens — App Stats for Google Play" />
-  <meta name="twitter:description" content="Exact installs, ratings, app age and update dates on every Google Play app card. Free Chrome extension." />
+  <meta name="twitter:description" content="Free Chrome extension showing exact installs, ratings, app age and last-updated dates on every app card in Google Play search, developer and collection lists." />
   <meta name="twitter:image" content="https://fighttechvn.github.io/playlens/assets/demo.png" />
-
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔎</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap" />
+  <link rel="stylesheet" href="site.css" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -38,312 +39,192 @@
     "softwareVersion": "2.1.0",
     "license": "https://opensource.org/licenses/MIT",
     "isAccessibleForFree": true,
-    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
     "author": {
       "@type": "Organization",
       "name": "FightTech VN",
       "url": "https://github.com/fighttechvn"
-    },
-    "featureList": [
-      "Exact install count, rating and last-updated date on every Google Play app card",
-      "App age and installs per day, with new releases marked",
-      "Rank numbers on search results",
-      "Sortable side panel with column chooser, filters, CSV and JSON export",
-      "Details per app: rating spread, price, developer contact, data safety, screenshots",
-      "Watchlist with change detection and measured growth",
-      "Low-star review viewer and review export",
-      "Keyword suggestions with an opportunity score",
-      "Country comparison and developer portfolio summary",
-      "Pro: daily rank tracker with history, alerts, comparison charts, reports, backups and saved keyword lists",
-      "No account, no analytics, no servers of our own"
+    }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How do I see the download count of an app without opening it?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Install PlayLens and open any Google Play list page. The exact install count, rating, number of ratings, last-updated date and app age appear on each app card directly — no clicking through."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Which Google Play pages does it work on?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Any page that shows a grid or row of app cards: developer pages, search results, category and collection pages, Similar apps, and the Play home page."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Are the review counts exact?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Play’s own cards round to something like 824K. PlayLens reads the structured data on each app’s detail page, so you get 824.1K — the real figure, useful when comparing two apps that both round to the same number."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I export the list to a spreadsheet?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Open the side panel and click Export — copy the table, or download it as CSV or JSON with every field, ready for Sheets or Excel."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is PlayLens free? What does Pro add?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Everything you see on the cards, the side panel, the watchlist, reviews, keyword ideas and exports is free. Pro adds a daily rank tracker with history, alerts, comparison charts, reports, backups and saved keyword lists."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Does it collect or send my data anywhere?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No account, no analytics and no server of ours. PlayLens runs only on play.google.com, fetches the same public pages you could open yourself, and keeps what it stores on your device. The one exception is a Pro licence key, which is sent to Polar to check it is valid."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Does it work in Edge, Brave or Opera?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes — it is a standard Manifest V3 extension, so any Chromium-based browser can load it."
+        }
+      }
     ]
   }
   </script>
-  <style>
-    :root {
-      --bg: #ffffff;
-      --fg: #1f1f1f;
-      --muted: #5f6368;
-      --card: #f8f9fa;
-      --border: rgba(0, 0, 0, 0.1);
-      --accent: #0b57d0;
-      --accent-fg: #ffffff;
-      --fresh: #1e8e3e;
-      --aging: #b06000;
-      --stale: #c5221f;
-      --chip: rgba(11, 87, 208, 0.08);
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #131314;
-        --fg: #e3e3e3;
-        --muted: #9aa0a6;
-        --card: #1e1f20;
-        --border: rgba(255, 255, 255, 0.12);
-        --accent: #a8c7fa;
-        --accent-fg: #062e6f;
-        --fresh: #6dd58c;
-        --aging: #fcc934;
-        --stale: #f28b82;
-        --chip: rgba(168, 199, 250, 0.12);
-      }
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--fg);
-      font-family: 'Google Sans Text', Roboto, 'Segoe UI', Arial, sans-serif;
-      line-height: 1.6;
-    }
-    a { color: var(--accent); }
-    .wrap { max-width: 880px; margin: 0 auto; padding: 0 24px; }
-
-    header { padding: 72px 0 40px; text-align: center; }
-    .logo { font-size: 56px; line-height: 1; }
-    h1 {
-      margin: 16px 0 0;
-      font-size: clamp(30px, 5.5vw, 44px);
-      line-height: 1.15;
-      letter-spacing: -0.02em;
-    }
-    h1 .brand { color: var(--accent); }
-    .tagline {
-      margin: 14px auto 0;
-      max-width: 620px;
-      font-size: 17px;
-      color: var(--muted);
-    }
-    .cta {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-top: 28px;
-    }
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 22px;
-      border-radius: 999px;
-      font-size: 15px;
-      font-weight: 600;
-      text-decoration: none;
-      border: 1px solid var(--border);
-    }
-    .btn-primary { background: var(--accent); color: var(--accent-fg); border-color: transparent; }
-    .btn-primary:hover { filter: brightness(1.08); }
-    .btn-ghost { color: var(--fg); }
-    .btn-ghost:hover { background: var(--card); }
-    .note { margin-top: 10px; font-size: 12.5px; color: var(--muted); }
-
-    /* real screenshot demo */
-    .shot { margin: 48px auto 0; }
-    .shot img {
-      display: block;
-      width: 100%;
-      max-width: 100%;
-      border-radius: 14px;
-      border: 1px solid var(--border);
-      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.22);
-    }
-
-    section { padding: 44px 0 0; }
-    h2 { font-size: 24px; margin: 0 0 18px; letter-spacing: -0.01em; }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 14px;
-    }
-    .feature {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 18px;
-    }
-    .feature .ico { font-size: 26px; }
-    .feature h3 { margin: 8px 0 6px; font-size: 16px; }
-    .feature p { margin: 0; font-size: 13.5px; color: var(--muted); }
-
-    ol.install { padding-left: 22px; margin: 0; font-size: 15px; }
-    ol.install li { margin: 8px 0; }
-    code {
-      background: var(--chip);
-      border-radius: 6px;
-      padding: 1px 7px;
-      font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-      font-size: 0.9em;
-    }
-
-    .install-manual { margin-top: 16px; }
-    .install-manual > summary {
-      cursor: pointer;
-      font-size: 13.5px;
-      color: var(--muted);
-      list-style-position: outside;
-    }
-    .install-manual > summary::marker { color: var(--accent); }
-    .install-manual ol.install { margin-top: 10px; font-size: 13.5px; color: var(--muted); }
-
-    .faq { display: grid; gap: 8px; }
-    .faq details {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px 16px;
-    }
-    .faq summary {
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 14.5px;
-      list-style-position: outside;
-    }
-    .faq summary::marker { color: var(--accent); }
-    .faq p { margin: 8px 0 2px; font-size: 13.5px; color: var(--muted); }
-
-    /* pricing */
-    .plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; align-items: start; }
-    .plan {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 22px;
-    }
-    .plan.pro { border-color: var(--accent); }
-    .plan h3 { margin: 0; font-size: 18px; }
-    .plan .price { margin: 4px 0 14px; font-size: 13.5px; color: var(--muted); }
-    .plan ul { margin: 0 0 4px; padding: 0; list-style: none; font-size: 14px; }
-    .plan li { padding: 5px 0 5px 24px; position: relative; }
-    .plan li::before { content: '✓'; position: absolute; left: 2px; color: var(--fresh); font-weight: 700; }
-    .plan li small { display: block; color: var(--muted); font-size: 12.5px; }
-    .tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 16px 0 10px; }
-    .tier {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      padding: 10px 8px;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      text-align: center;
-      color: var(--fg);
-      text-decoration: none;
-      font-size: 13px;
-    }
-    .tier strong { font-size: 17px; }
-    .tier em { font-style: normal; font-size: 12px; color: var(--muted); }
-    .tier .tag { font-size: 11.5px; font-weight: 600; color: var(--accent); }
-    .tier[aria-disabled='true'] { cursor: default; opacity: 0.7; }
-    .tier:not([aria-disabled='true']):hover { background: var(--chip); border-color: var(--accent); }
-    .fine { margin: 14px 0 0; font-size: 12.5px; color: var(--muted); }
-    @media (max-width: 420px) { .tiers { grid-template-columns: 1fr; } }
-    footer {
-      margin-top: 64px;
-      padding: 26px 0 40px;
-      border-top: 1px solid var(--border);
-      text-align: center;
-      font-size: 13px;
-      color: var(--muted);
-    }
-    footer .tm {
-      display: inline-block;
-      margin-top: 12px;
-      max-width: 560px;
-      font-size: 11.5px;
-      opacity: 0.8;
-    }
-  </style>
 </head>
-<body>
-  <header class="wrap">
-    <div class="logo">🔎</div>
-    <h1><span class="brand">PlayLens</span><br />See every app's stats, right on the list.</h1>
-    <p class="tagline">
-      Open-source Chrome extension, free to use, that shows <strong>exact installs</strong>,
-      <strong>ratings</strong>, <strong>app age</strong> and <strong>last-updated dates</strong> for every app
-      directly on Google&nbsp;Play list pages — developer pages, search results, collections.
-      Compare, follow and export them from one side panel.
-    </p>
-    <div class="cta">
-      <a class="btn btn-primary" href="https://chromewebstore.google.com/detail/playlens-%E2%80%93-app-stats-for/hnhlkgnfbcijmnaaclpliogmmnflekko">⬇ Add to Chrome — free</a>
-      <a class="btn btn-ghost" href="https://github.com/fighttechvn/playlens">★ View on GitHub</a>
+<body><nav class="nav" aria-label="Main">
+  <div class="wrap">
+    <a class="brand" href="./"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="13.5" cy="13.5" r="9" fill="none" stroke="currentColor" stroke-width="3"/><path d="M11 9.8v7.4l6.2-3.7z" fill="var(--accent)"/><path d="m20.5 20.5 7 7" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"/></svg>PlayLens</a>
+    <div class="links">
+      <a href="index.html#features">Features</a>
+      <a href="index.html#pricing">Pricing</a>
+      <a href="blog/">Blog</a>
+      <a href="index.html#faq">FAQ</a>
+      <a href="https://github.com/fighttechvn/playlens">GitHub</a>
     </div>
-    <p class="note">
-      On the Chrome Web Store · MIT licensed · no tracking · all data stays in your browser<br />
-      Prefer to install it yourself? <a href="https://github.com/fighttechvn/playlens/releases/latest/download/playlens.zip">Download the zip</a>.
-    </p>
-
-    <div class="shot">
-      <img
-        src="assets/demo.png"
-        alt="PlayLens on a Google Play search results page: rank, installs, ratings and update date under every app card, and the side panel with a summary of the first ten results and a sortable table"
-        loading="lazy"
-      />
+    <a class="btn btn-primary btn-sm" href="https://chromewebstore.google.com/detail/playlens-%E2%80%93-app-stats-for/hnhlkgnfbcijmnaaclpliogmmnflekko">Add to Chrome</a>
+  </div>
+</nav>
+<header class="hero">
+  <div class="wrap">
+    <span class="eyebrow">Chrome extension · open source</span>
+    <h1>Every app's real numbers, <em>right on Google Play</em></h1>
+    <p class="lead">Exact installs, ratings, app age and last-updated dates under every app card — in search, on developer pages and in collections. Then compare, follow and export them from one side panel.</p>
+    <div class="cta-row">
+      <a class="btn btn-primary btn-lg" href="https://chromewebstore.google.com/detail/playlens-%E2%80%93-app-stats-for/hnhlkgnfbcijmnaaclpliogmmnflekko">Add to Chrome — it's free</a>
+      <a class="btn btn-lg" href="blog/">Read the guides</a>
     </div>
-  </header>
+    <ul class="trust">
+      <li>On the Chrome Web Store</li>
+      <li>MIT licensed</li>
+      <li>No account, no tracking</li>
+      <li>Data stays in your browser</li>
+    </ul>
+    <div class="frame">
+      <div class="bar"><i></i><i></i><i></i><span>play.google.com/store/search?q=focus timer</span></div>
+      <img src="assets/demo.png" width="2000" height="1120" alt="PlayLens on a Google Play search results page: rank, installs, ratings and update date under every app card, and the side panel with a summary and a sortable table" />
+    </div>
+  </div>
+</header>
 
-  <section class="wrap">
-    <h2>What you get</h2>
-    <div class="grid">
-      <div class="feature">
-        <div class="ico">📝</div>
-        <h3>Numbers on every card</h3>
-        <p>Exact installs (49.2M, not “10M+”), number of ratings, update date colour-coded by freshness, app age and installs per day — right under each card's own rating, or as a strip on the icon.</p>
-      </div>
-      <div class="feature">
-        <div class="ico">🏁</div>
-        <h3>Rank on search results</h3>
-        <p>Each result carries its position, #1, #2, #3… The table and the exports keep it together with the search term.</p>
-      </div>
-      <div class="feature">
-        <div class="ico">📊</div>
-        <h3>Side panel</h3>
-        <p>A table of every app on the page: sort, choose columns, filter by installs, rating, age or freshness, and export CSV or JSON with all fields.</p>
-      </div>
-      <div class="feature">
-        <div class="ico">🔍</div>
-        <h3>Details of one app</h3>
-        <p>Rating spread with the share of 1–2★, price and in-app purchases, data safety, developer email and website, store screenshots, and a comparison across countries.</p>
-      </div>
-      <div class="feature">
-        <div class="ico">⭐</div>
-        <h3>Watchlist</h3>
-        <p>Star an app to follow it. PlayLens notes changes of version, name, price and rating, and measures installs per day from a daily record kept on your device.</p>
-      </div>
-      <div class="feature">
-        <div class="ico">💬</div>
-        <h3>Low-star reviews</h3>
-        <p>The latest 1–3★ reviews of an app with the words that come up most, and an export by stars and date. Reviewer names are left out.</p>
-      </div>
-      <div class="feature">
-        <div class="ico">🔑</div>
-        <h3>Keyword ideas</h3>
-        <p>Play's own search suggestions for a word, each scored from its first ten results: Open, Contested or Crowded.</p>
-      </div>
-      <div class="feature">
-        <div class="ico">🏢</div>
-        <h3>Developer pages</h3>
-        <p>The whole portfolio in one line: total and median installs, average rating, how many apps were updated in the last 90 days.</p>
-      </div>
-      <div class="feature">
-        <div class="ico">⚙️</div>
-        <h3>Your choice</h3>
-        <p>Every part can be switched on or off from the popup or the settings page. Changes apply instantly — no page reload.</p>
-      </div>
-      <div class="feature">
-        <div class="ico">🔒</div>
-        <h3>Private by design</h3>
-        <p>No account, no analytics, no servers of our own. Requests go straight to play.google.com and everything stored stays on your device.</p>
+<section class="sec" aria-labelledby="h-card">
+  <div class="wrap sample">
+    <div class="sec-head">
+      <span class="eyebrow">On every card</span>
+      <h2 id="h-card">Play says “10M+”. PlayLens says 49.2M.</h2>
+      <p>Play rounds installs into buckets, so two very different apps look the same. PlayLens reads the real figure from each app's page and adds age, growth and freshness, colour-coded so the stale ones stand out.</p>
+      <p><a href="blog/see-exact-installs-on-google-play.html"><strong>How to read the info line →</strong></a></p>
+    </div>
+    <div class="sample-card" role="img" aria-label="Example of an info line under an app card: rank 2, 49.2 million installs, 813 thousand ratings, updated Sep 23 2026, 12 years old, about 11.1 thousand installs per day">
+      <div class="row"><div class="ic"></div><div><b>Example app</b><div class="sub">Example developer · ★ 4.6</div></div></div>
+      <div class="lines">
+        <span><em>rank · installs</em>#2 ⬇49.2M · 813K rv</span>
+        <span><em>last update</em><span class="fresh">⟳ Sep 23, 2026</span></span>
+        <span><em>age · growth</em>12y old · ~11.1K/day</span>
+        <span><em>for comparison</em><span class="stale">⟳ Jan 14, 2025</span></span>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <section class="wrap" id="pricing">
-    <h2>Free for everything you see. Pro for what takes time.</h2>
+<section class="sec" id="features" aria-labelledby="h-feat">
+  <div class="wrap">
+    <div class="sec-head"><span class="eyebrow">Features</span><h2 id="h-feat">Research a market without opening forty tabs</h2><p>Everything below is free unless it is marked Pro.</p></div>
+    <div class="feat">
+      <div><span class="tag">Cards</span><h3>Numbers on every card</h3><p>Exact installs, number of ratings, update date by freshness, app age and installs per day, under each card's own rating.</p><a class="more" href="blog/see-exact-installs-on-google-play.html">Guide →</a></div>
+      <div><span class="tag">Search</span><h3>Rank on search results</h3><p>Every result carries its position. The table and the exports keep it together with the search term.</p></div>
+      <div><span class="tag">Panel</span><h3>Sortable side panel</h3><p>Every app on the page in a table: choose columns, filter by installs, rating, age or freshness, export CSV or JSON with all fields.</p></div>
+      <div><span class="tag">Keywords</span><h3>Keyword ideas with a verdict</h3><p>Play's own suggestions for a word, each scored Open, Contested or Crowded from its first ten results.</p><a class="more" href="blog/google-play-keyword-research.html">Guide →</a></div>
+      <div><span class="tag">Watchlist</span><h3>Follow competitors</h3><p>Star an app. PlayLens notes version, name, price and rating changes and measures installs per day from a daily record.</p><a class="more" href="blog/watchlist-competitor-monitoring.html">Guide →</a></div>
+      <div><span class="tag">Reviews</span><h3>Low-star reviews</h3><p>The latest 1–3★ reviews with the words that come up most, exportable by stars and date. Reviewer names are left out.</p><a class="more" href="blog/read-low-star-reviews-google-play.html">Guide →</a></div>
+      <div><span class="tag">Pro</span><h3>Daily rank tracker</h3><p>Follow keyword and country pairs, checked once a day in the background with 90 days of history.</p><a class="more" href="blog/track-keyword-rankings-google-play.html">Guide →</a></div>
+      <div><span class="tag">Pro</span><h3>Compare with charts</h3><p>Up to 6 apps side by side, with installs and rating history drawn in colour-blind-safe charts.</p></div>
+      <div><span class="tag">Pro</span><h3>Alerts, reports, backups</h3><p>Desktop notifications, a Watchlist report in HTML or Markdown, and a full backup you can restore.</p><a class="more" href="blog/playlens-pro-polar-licence.html">Guide →</a></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" aria-labelledby="h-how">
+  <div class="wrap">
+    <div class="sec-head"><span class="eyebrow">How it works</span><h2 id="h-how">Working in 30 seconds</h2></div>
+    <ol class="steps">
+      <li><h3>Install</h3><p>Add PlayLens from the Chrome Web Store. No sign-up, nothing to configure.</p></li>
+      <li><h3>Open any Play list</h3><p>A search, a developer page or a collection. The numbers appear under every card.</p></li>
+      <li><h3>Open the panel</h3><p>Sort, filter and export the list, star apps to follow them, score keywords.</p></li>
+    </ol>
+    <details class="faq" style="margin-top:28px"><summary style="cursor:pointer;color:var(--muted);font-size:14px">Or install it from the source</summary>
+      <ol style="font-size:14.5px;color:var(--muted)">
+        <li><a href="https://github.com/fighttechvn/playlens/releases/latest/download/playlens.zip">Download <code>playlens.zip</code></a> and unzip it.</li>
+        <li>Open <code>chrome://extensions</code> and turn on <strong>Developer mode</strong>.</li>
+        <li>Click <strong>Load unpacked</strong> and pick the unzipped folder.</li>
+      </ol>
+    </details>
+  </div>
+</section>
+
+<section class="sec" aria-labelledby="h-use">
+  <div class="wrap">
+    <div class="sec-head"><span class="eyebrow">Use cases</span><h2 id="h-use">Who it is for</h2></div>
+    <div class="uses">
+      <div class="use"><h3>Indie developers choosing an idea</h3><p>See which search terms have weak, stale or small results before you build, and what the top apps charge.</p></div>
+      <div class="use"><h3>ASO and growth teams</h3><p>Follow where your app ranks for the terms that matter, by country, and get told when it moves.</p></div>
+      <div class="use"><h3>Product managers watching competitors</h3><p>Know when a rival ships a new version, changes price or starts losing rating, without checking by hand.</p></div>
+      <div class="use"><h3>Researchers and analysts</h3><p>Export clean CSV or JSON of a whole list with 36 fields, ready for a spreadsheet.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="pricing" aria-labelledby="h-price">
+  <div class="wrap">
+    <div class="sec-head center"><span class="eyebrow">Pricing</span><h2 id="h-price">Free for everything you see. Pro for what takes time.</h2></div>
     <div class="plans">
       <div class="plan">
         <h3>Free</h3>
-        <p class="price">$0, with no account and no time limit</p>
+        <p class="price">$0, no account, no time limit</p>
         <ul>
           <li>Exact installs, ratings, age and update date on every card</li>
           <li>Side panel, filters, CSV and JSON export</li>
@@ -352,8 +233,10 @@
           <li>Follow 3 keywords by country in the rank tracker</li>
           <li>Compare 2 apps side by side</li>
         </ul>
+        <p style="margin:auto 0 0;padding-top:22px"><a class="btn" style="width:100%" href="https://chromewebstore.google.com/detail/playlens-%E2%80%93-app-stats-for/hnhlkgnfbcijmnaaclpliogmmnflekko">Add to Chrome</a></p>
       </div>
       <div class="plan pro">
+        <span class="badge">Pro</span>
         <h3>Pro</h3>
         <p class="price">Billed and taxed by Polar · cancel any time</p>
         <ul>
@@ -372,125 +255,85 @@
         <p class="fine">You get a licence key by email. Paste it in the PlayLens settings; it works on up to 3 of your browsers. Prices in USD.</p>
       </div>
     </div>
-    <p class="fine">PlayLens stays open source (MIT). Pro is a convenience and a way to support the work, not copy protection. The key is checked with Polar about once a day and nothing else leaves your browser — see the <a href="privacy.html">privacy policy</a>.</p>
-  </section>
+    <p class="fine" style="text-align:center;max-width:70ch;margin:20px auto 0">PlayLens stays open source (MIT). Pro is a convenience and a way to support the work, not copy protection. The key is checked with Polar about once a day and nothing else leaves your browser — see the <a href="privacy.html">privacy policy</a> and <a href="blog/playlens-pro-polar-licence.html">how the licence works</a>.</p>
+  </div>
+</section>
 
-  <section class="wrap">
-    <h2>Install in 30 seconds</h2>
-    <ol class="install">
-      <li>Open the <a href="https://chromewebstore.google.com/detail/playlens-%E2%80%93-app-stats-for/hnhlkgnfbcijmnaaclpliogmmnflekko">PlayLens page on the Chrome Web Store</a>.</li>
-      <li>Click <strong>Add to Chrome</strong>, then <strong>Add extension</strong>.</li>
-      <li>Open any Google Play list page — stats appear on every app card.</li>
-    </ol>
-    <details class="install-manual">
-      <summary>Or install it from the source</summary>
-      <ol class="install">
-        <li><a href="https://github.com/fighttechvn/playlens/releases/latest/download/playlens.zip">Download <code>playlens.zip</code></a> and unzip it.</li>
-        <li>Open <code>chrome://extensions</code> and turn on <strong>Developer mode</strong>.</li>
-        <li>Click <strong>Load unpacked</strong> and pick the unzipped folder.</li>
-      </ol>
-    </details>
-  </section>
+<section class="sec" aria-labelledby="h-blog">
+  <div class="wrap">
+    <div class="sec-head"><span class="eyebrow">Guides</span><h2 id="h-blog">Learn each feature</h2><p>Short, practical walkthroughs with real screenshots.</p></div>
+    <div class="cards">
+      <a class="pcard" href="blog/see-exact-installs-on-google-play.html"><img src="assets/screenshot-2-cards.png" alt="" loading="lazy" width="1280" height="800" /><div class="b"><span class="k">Basics</span><h3>How to see exact installs on Google Play</h3><p>Google Play shows installs as buckets like 10M+. Here is how to read the exact number, the app age and installs per day for every app on a list page.</p><span class="m">5 min read</span></div></a>
+      <a class="pcard" href="blog/google-play-keyword-research.html"><img src="assets/screenshot-5-keywords.png" alt="" loading="lazy" width="1280" height="800" /><div class="b"><span class="k">Keywords</span><h3>Google Play keyword research with an opportunity score</h3><p>Turn Play’s own search suggestions into a ranked list. How the Open, Contested and Crowded verdict is calculated, and how to use it on real ideas.</p><span class="m">7 min read</span></div></a>
+      <a class="pcard" href="blog/track-keyword-rankings-google-play.html"><img src="assets/screenshot-4-watchlist.png" alt="" loading="lazy" width="1280" height="800" /><div class="b"><span class="k">Pro</span><h3>Track your Google Play keyword rankings every day</h3><p>Follow where an app ranks for a keyword in any country. The tracker checks once a day in the background, keeps 90 days and can notify you when a rank moves.</p><span class="m">6 min read</span></div></a>
+    </div>
+    <p style="margin-top:22px"><a href="blog/"><strong>All guides →</strong></a></p>
+  </div>
+</section>
 
-  <section class="wrap">
-    <h2>Questions</h2>
+<section class="sec" id="faq" aria-labelledby="h-faq">
+  <div class="wrap">
+    <div class="sec-head"><span class="eyebrow">FAQ</span><h2 id="h-faq">Questions</h2></div>
     <div class="faq">
-      <details>
-        <summary>How do I see the download count of an app without opening it?</summary>
-        <p>Install PlayLens and open any Google&nbsp;Play list page. The exact install count, rating, number of ratings, last-updated date and app age appear on each app card directly — no clicking through.</p>
-      </details>
-      <details>
-        <summary>Which Google Play pages does it work on?</summary>
-        <p>Any page that shows a grid or row of app cards: developer pages, search results, category and collection pages, "Similar apps", and the Play home page.</p>
-      </details>
-      <details>
-        <summary>Are the review counts exact?</summary>
-        <p>Yes. Play's own cards round to something like "824K". PlayLens reads the structured data on each app's detail page, so you get 824.1K — the real figure, useful when you are comparing two apps that both round to the same number.</p>
-      </details>
-      <details>
-        <summary>Can I export the list to a spreadsheet?</summary>
-        <p>Yes. Open the side panel and click <strong>Export</strong> — copy the table, or download it as CSV or JSON with every field, ready for Sheets or Excel.</p>
-      </details>
-      <details>
-        <summary>Is PlayLens free? What does Pro add?</summary>
-        <p>Everything you see on the cards, the side panel, the watchlist, reviews, keyword ideas and exports is free. Pro adds the parts that take time to build up or run in the background: a daily rank tracker with history, alerts, comparison charts, reports, backups and saved keyword lists. See the <a href="#pricing">pricing</a>.</p>
-      </details>
-      <details>
-        <summary>Does it collect or send my data anywhere?</summary>
-        <p>No account, no analytics and no server of ours. PlayLens runs only on play.google.com, fetches the same public pages you could open yourself, and keeps what it stores — cache, Recent list, Watchlist — on your device. The one exception is a Pro licence key: if you enter one, it is sent to Polar (api.polar.sh) to check it is valid. See the <a href="privacy.html">privacy policy</a>.</p>
-      </details>
-      <details>
-        <summary>Does it work in Edge, Brave or Opera?</summary>
-        <p>Yes — it is a standard Manifest V3 extension, so any Chromium-based browser can load it.</p>
-      </details>
+      <details><summary>How do I see the download count of an app without opening it?</summary><p>Install PlayLens and open any Google Play list page. The exact install count, rating, number of ratings, last-updated date and app age appear on each app card directly — no clicking through.</p></details>
+      <details><summary>Which Google Play pages does it work on?</summary><p>Any page that shows a grid or row of app cards: developer pages, search results, category and collection pages, Similar apps, and the Play home page.</p></details>
+      <details><summary>Are the review counts exact?</summary><p>Yes. Play’s own cards round to something like 824K. PlayLens reads the structured data on each app’s detail page, so you get 824.1K — the real figure, useful when comparing two apps that both round to the same number.</p></details>
+      <details><summary>Can I export the list to a spreadsheet?</summary><p>Yes. Open the side panel and click Export — copy the table, or download it as CSV or JSON with every field, ready for Sheets or Excel.</p></details>
+      <details><summary>Is PlayLens free? What does Pro add?</summary><p>Everything you see on the cards, the side panel, the watchlist, reviews, keyword ideas and exports is free. Pro adds a daily rank tracker with history, alerts, comparison charts, reports, backups and saved keyword lists.</p></details>
+      <details><summary>Does it collect or send my data anywhere?</summary><p>No account, no analytics and no server of ours. PlayLens runs only on play.google.com, fetches the same public pages you could open yourself, and keeps what it stores on your device. The one exception is a Pro licence key, which is sent to Polar to check it is valid.</p></details>
+      <details><summary>Does it work in Edge, Brave or Opera?</summary><p>Yes — it is a standard Manifest V3 extension, so any Chromium-based browser can load it.</p></details>
     </div>
-  </section>
+  </div>
+</section>
 
-  <footer>
-    <div class="wrap">
-      PlayLens is open source under the MIT license ·
-      <a href="https://github.com/fighttechvn/playlens">Source code</a> ·
-      <a href="https://github.com/fighttechvn/playlens/issues">Report an issue</a> ·
-      <a href="privacy.html">Privacy policy</a><br />
-      Made by <a href="https://github.com/fighttechvn">FightTech VN</a><br />
-      <span class="tm">PlayLens is an independent project, not affiliated with, endorsed by or sponsored by Google. Google Play is a trademark of Google&nbsp;LLC.</span>
+<section class="band">
+  <div class="wrap">
+    <h2>See the real numbers behind every Play listing</h2>
+    <p>Free, open source, and nothing to sign up for.</p>
+    <a class="btn btn-primary btn-lg" href="https://chromewebstore.google.com/detail/playlens-%E2%80%93-app-stats-for/hnhlkgnfbcijmnaaclpliogmmnflekko">Add to Chrome — it's free</a>
+  </div>
+</section>
+
+<script>
+  // Fill these in once the Polar checkout links exist (Polar → Products →
+  // Checkout Links). While a value is empty its button stays "Coming soon".
+  var CHECKOUT = { monthly: '', yearly: '', lifetime: '' };
+  document.querySelectorAll('#tiers .tier').forEach(function (a) {
+    var url = CHECKOUT[a.getAttribute('data-plan')];
+    if (!/^https:\/\/(buy|sandbox-buy)\.polar\.sh\//.test(url || '')) return;
+    a.href = url;
+    a.removeAttribute('aria-disabled');
+    a.querySelector('em').textContent = 'Buy now';
+  });
+</script>
+<footer class="foot">
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <a class="brand" href="./"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="13.5" cy="13.5" r="9" fill="none" stroke="currentColor" stroke-width="3"/><path d="M11 9.8v7.4l6.2-3.7z" fill="var(--accent)"/><path d="m20.5 20.5 7 7" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"/></svg>PlayLens</a>
+        <p class="about">Open-source Chrome extension for Google Play research. No account, no analytics, no servers of our own.</p>
+      </div>
+      <div><h4>Product</h4><ul>
+        <li><a href="index.html#features">Features</a></li>
+        <li><a href="index.html#pricing">Pricing</a></li>
+        <li><a href="https://chromewebstore.google.com/detail/playlens-%E2%80%93-app-stats-for/hnhlkgnfbcijmnaaclpliogmmnflekko">Chrome Web Store</a></li>
+        <li><a href="https://github.com/fighttechvn/playlens/releases/latest/download/playlens.zip">Download the zip</a></li>
+      </ul></div>
+      <div><h4>Guides</h4><ul>
+        <li><a href="blog/">All guides</a></li>
+        <li><a href="blog/see-exact-installs-on-google-play.html">Exact installs</a></li>
+        <li><a href="blog/google-play-keyword-research.html">Keyword research</a></li>
+        <li><a href="blog/track-keyword-rankings-google-play.html">Rank tracking</a></li>
+      </ul></div>
+      <div><h4>Project</h4><ul>
+        <li><a href="https://github.com/fighttechvn/playlens">Source code</a></li>
+        <li><a href="https://github.com/fighttechvn/playlens/issues">Report an issue</a></li>
+        <li><a href="privacy.html">Privacy policy</a></li>
+        <li><a href="https://github.com/fighttechvn">FightTech VN</a></li>
+      </ul></div>
     </div>
-  </footer>
-
-  <script>
-    // Fill these in once the Polar checkout links exist (Polar → Products →
-    // Checkout Links). While a value is empty its button stays "Coming soon".
-    var CHECKOUT = { monthly: '', yearly: '', lifetime: '' };
-    document.querySelectorAll('#tiers .tier').forEach(function (a) {
-      var url = CHECKOUT[a.getAttribute('data-plan')];
-      if (!/^https:\/\/(buy|sandbox-buy)\.polar\.sh\//.test(url || '')) return;
-      a.href = url;
-      a.removeAttribute('aria-disabled');
-      a.querySelector('em').textContent = 'Buy now';
-    });
-  </script>
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [
-      {
-        "@type": "Question",
-        "name": "How do I see the download count of an app without opening it?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Install PlayLens and open any Google Play list page. The exact install count, rating, number of ratings, last-updated date and app age appear on each app card directly — no clicking through." }
-      },
-      {
-        "@type": "Question",
-        "name": "Which Google Play pages does it work on?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Any page that shows a grid or row of app cards: developer pages, search results, category and collection pages, Similar apps, and the Play home page." }
-      },
-      {
-        "@type": "Question",
-        "name": "Are the review counts exact?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Yes. Play's own cards round to something like 824K. PlayLens reads the structured data on each app's detail page, so you get 824.1K — the real figure, useful when comparing two apps that both round to the same number." }
-      },
-      {
-        "@type": "Question",
-        "name": "Can I export the list to a spreadsheet?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Yes. Open the side panel and click Export — copy the table, or download it as CSV or JSON with every field, ready for Sheets or Excel." }
-      },
-      {
-        "@type": "Question",
-        "name": "Is PlayLens free? What does Pro add?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Everything you see on the cards, the side panel, the watchlist, reviews, keyword ideas and exports is free. Pro adds a daily rank tracker with history, alerts, comparison charts, reports, backups and saved keyword lists." }
-      },
-      {
-        "@type": "Question",
-        "name": "Does it collect or send my data anywhere?",
-        "acceptedAnswer": { "@type": "Answer", "text": "No account, no analytics and no server of ours. PlayLens runs only on play.google.com, fetches the same public pages you could open yourself, and keeps what it stores on your device. The one exception is a Pro licence key, which is sent to Polar to check it is valid." }
-      },
-      {
-        "@type": "Question",
-        "name": "Does it work in Edge, Brave or Opera?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Yes — it is a standard Manifest V3 extension, so any Chromium-based browser can load it." }
-      }
-    ]
-  }
-  </script>
+    <p class="legal">PlayLens is MIT licensed. It is an independent project, not affiliated with, endorsed by or sponsored by Google. Google Play is a trademark of Google&nbsp;LLC. © 2026 FightTech VN.</p>
+  </div>
+</footer>
 </body>
 </html>
