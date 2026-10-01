@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Find what users hate: reading low-star reviews on Google Play — PlayLens</title>
+  <meta name="description" content="The latest 1 to 3 star reviews of any app, the words that come up most, and an export you can filter by stars and date. Without reviewer names." />
+  <link rel="canonical" href="https://fighttechvn.github.io/playlens/blog/read-low-star-reviews-google-play.html" />
+  <meta name="author" content="FightTech VN" />
+  <meta property="og:title" content="Find what users hate: reading low-star reviews on Google Play — PlayLens" />
+  <meta property="og:description" content="The latest 1 to 3 star reviews of any app, the words that come up most, and an export you can filter by stars and date. Without reviewer names." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://fighttechvn.github.io/playlens/blog/read-low-star-reviews-google-play.html" />
+  <meta property="og:image" content="https://fighttechvn.github.io/playlens/assets/screenshot-3-details.png" />
+  <meta property="og:site_name" content="PlayLens" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Find what users hate: reading low-star reviews on Google Play — PlayLens" />
+  <meta name="twitter:description" content="The latest 1 to 3 star reviews of any app, the words that come up most, and an export you can filter by stars and date. Without reviewer names." />
+  <meta name="twitter:image" content="https://fighttechvn.github.io/playlens/assets/screenshot-3-details.png" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔎</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap" />
+  <link rel="stylesheet" href="../site.css" />
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Find what users hate: reading low-star reviews on Google Play","description":"The latest 1 to 3 star reviews of any app, the words that come up most, and an export you can filter by stars and date. Without reviewer names.","image":"https://fighttechvn.github.io/playlens/assets/screenshot-3-details.png","datePublished":"2026-10-01","dateModified":"2026-10-01","author":{"@type":"Organization","name":"FightTech VN"},"publisher":{"@type":"Organization","name":"FightTech VN"},"mainEntityOfPage":"https://fighttechvn.github.io/playlens/blog/read-low-star-reviews-google-play.html"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"PlayLens","item":"https://fighttechvn.github.io/playlens/"},{"@type":"ListItem","position":2,"name":"Guides","item":"https://fighttechvn.github.io/playlens/blog/"},{"@type":"ListItem","position":3,"name":"Find what users hate: reading low-star reviews on Google Play","item":"https://fighttechvn.github.io/playlens/blog/read-low-star-reviews-google-play.html"}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Where do the reviews come from?","acceptedAnswer":{"@type":"Answer","text":"From the same endpoint the Play site itself calls. They are requested only when you click, never in the background."}}]}</script>
+</head>
+<body><nav class="nav" aria-label="Main">
+  <div class="wrap">
+    <a class="brand" href="../"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="13.5" cy="13.5" r="9" fill="none" stroke="currentColor" stroke-width="3"/><path d="M11 9.8v7.4l6.2-3.7z" fill="var(--accent)"/><path d="m20.5 20.5 7 7" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"/></svg>PlayLens</a>
+    <div class="links">
+      <a href="../index.html#features">Features</a>
+      <a href="../index.html#pricing">Pricing</a>
+      <a href="../blog/" aria-current="page">Blog</a>
+      <a href="../index.html#faq">FAQ</a>
+      <a href="https://github.com/fighttechvn/playlens">GitHub</a>
+    </div>
+    <a class="btn btn-primary btn-sm" href="https://chromewebstore.google.com/detail/playlens-%E2%80%93-app-stats-for/hnhlkgnfbcijmnaaclpliogmmnflekko">Add to Chrome</a>
+  </div>
+</nav>
+<div class="wrap">
+  <div class="crumbs"><a href="../">Home</a> / <a href="./">Guides</a> / Find what users hate: reading low-star reviews on Google Play</div>
+  <header class="post-head">
+    <span class="eyebrow">Research</span>
+    <h1 style="margin-top:14px">Find what users hate: reading low-star reviews on Google Play</h1>
+    <p class="lede">The latest 1 to 3 star reviews of any app, the words that come up most, and an export you can filter by stars and date. Without reviewer names.</p>
+    <div class="meta"><span>FightTech VN</span><span>Updated October 1, 2026</span><span>5 min read</span></div>
+  </header>
+  <div class="post-grid">
+    <aside class="toc" aria-label="On this page"><h4>On this page</h4><ol>
+      <li><a href="#why">Why low-star reviews</a></li>
+      <li><a href="#open">Open them</a></li>
+      <li><a href="#export">Export</a></li>
+      <li><a href="#details">Also in the details drawer</a></li>
+      <li><a href="#faq">Questions</a></li>
+    </ol></aside>
+    <article class="prose">
+<h2 id="why">Why low-star reviews</h2>
+<p>Five-star reviews say “nice”. One- to three-star reviews say what is missing, what broke and what people would pay to have fixed. For a competitor that is a ready-made list of features you could do better.</p>
+<h2 id="open">Open them</h2>
+<ol>
+<li>In the side panel, open an app's details with <strong>More</strong>.</li>
+<li>Click <strong>Low-star reviews</strong>. The newest 1–3★ reviews load, and <strong>More</strong> reads the next batch.</li>
+<li>Above the list, a few chips show the words that come up most, with how many of the reviews mention each.</li>
+</ol>
+<figure><img src="../assets/screenshot-3-details.png" alt="App details drawer with ratings, listing and screenshots" loading="lazy" width="1280" height="800" /><figcaption>The details drawer: exact installs, the 1–5★ spread with the share of 1–2★, price, data safety, developer contact and screenshots.</figcaption></figure>
+<h2 id="export">Export</h2>
+<p><strong>Export CSV</strong> or <strong>Export JSON</strong> reads the reviews and saves them, filtered by stars and date. <strong>Stop</strong> ends the read early and saves what is already there. Reviewer names are left out on purpose.</p>
+<h2 id="details">Also in the details drawer</h2>
+<ul>
+<li>Exact installs next to Play's bucket, release date, and installs per day since launch and measured.</li>
+<li>Ratings per install, and the spread of 1–5★ with the share of 1–2★.</li>
+<li>Price, in-app purchases and ads, category, version, minimum Android, data safety labels.</li>
+<li>Developer email and website with a copy button, and links to AppBrain, APKMirror and the App Store.</li>
+<li><strong>Compare countries</strong>: rating and prices per country, one request each, only when you ask.</li>
+</ul>
+<h2 id="faq">Questions</h2>
+<h3>Where do the reviews come from?</h3><p>From the same endpoint the Play site itself calls. They are requested only when you click, never in the background.</p>
+      <div class="cta-box">
+        <h3>Try it on a real Play page</h3>
+        <p>PlayLens is free, open source and needs no account.</p>
+        <a class="btn btn-primary" href="https://chromewebstore.google.com/detail/playlens-%E2%80%93-app-stats-for/hnhlkgnfbcijmnaaclpliogmmnflekko">Add to Chrome</a>
+      </div>
+    </article>
+  </div>
+  <section class="related"><h2>Keep reading</h2><div class="cards" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))"><a class="pcard" href="watchlist-competitor-monitoring.html"><img src="../assets/screenshot-4-watchlist.png" alt="" loading="lazy" width="1280" height="800" /><div class="b"><span class="k">Monitoring</span><h3>Monitor competitors with the PlayLens Watchlist</h3><p>Star an app and PlayLens notes version, name, price and rating changes and measures real installs per day. How to read it, report on it and back it up.</p><span class="m">6 min read</span></div></a><a class="pcard" href="see-exact-installs-on-google-play.html"><img src="../assets/screenshot-2-cards.png" alt="" loading="lazy" width="1280" height="800" /><div class="b"><span class="k">Basics</span><h3>How to see exact installs on Google Play</h3><p>Google Play shows installs as buckets like 10M+. Here is how to read the exact number, the app age and installs per day for every app on a list page.</p><span class="m">5 min read</span></div></a></div></section>
+</div>
+<footer class="foot">
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <a class="brand" href="../"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="13.5" cy="13.5" r="9" fill="none" stroke="currentColor" stroke-width="3"/><path d="M11 9.8v7.4l6.2-3.7z" fill="var(--accent)"/><path d="m20.5 20.5 7 7" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"/></svg>PlayLens</a>
+        <p class="about">Open-source Chrome extension for Google Play research. No account, no analytics, no servers of our own.</p>
+      </div>
+      <div><h4>Product</h4><ul>
+        <li><a href="../index.html#features">Features</a></li>
+        <li><a href="../index.html#pricing">Pricing</a></li>
+        <li><a href="https://chromewebstore.google.com/detail/playlens-%E2%80%93-app-stats-for/hnhlkgnfbcijmnaaclpliogmmnflekko">Chrome Web Store</a></li>
+        <li><a href="https://github.com/fighttechvn/playlens/releases/latest/download/playlens.zip">Download the zip</a></li>
+      </ul></div>
+      <div><h4>Guides</h4><ul>
+        <li><a href="../blog/">All guides</a></li>
+        <li><a href="../blog/see-exact-installs-on-google-play.html">Exact installs</a></li>
+        <li><a href="../blog/google-play-keyword-research.html">Keyword research</a></li>
+        <li><a href="../blog/track-keyword-rankings-google-play.html">Rank tracking</a></li>
+      </ul></div>
+      <div><h4>Project</h4><ul>
+        <li><a href="https://github.com/fighttechvn/playlens">Source code</a></li>
+        <li><a href="https://github.com/fighttechvn/playlens/issues">Report an issue</a></li>
+        <li><a href="../privacy.html">Privacy policy</a></li>
+        <li><a href="https://github.com/fighttechvn">FightTech VN</a></li>
+      </ul></div>
+    </div>
+    <p class="legal">PlayLens is MIT licensed. It is an independent project, not affiliated with, endorsed by or sponsored by Google. Google Play is a trademark of Google&nbsp;LLC. © 2026 FightTech VN.</p>
+  </div>
+</footer>
+</body>
+</html>
