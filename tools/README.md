@@ -13,6 +13,7 @@ at the top of the file — adjust it if you move things around.
   Chrome Web Store expects) from a live Google Play search page, with the extension
   loaded unpacked into a fresh profile: panel, cards, details, Watchlist, Keywords
 - `publish.sh` → upload a build to the Chrome Web Store (see `store/api-publishing.md`)
+- `cws-setup.js` → one-command setup of the store credentials (`.env.cws` + GitHub secrets); `--check` verifies them
 
 ```bash
 node tools/test-core.js
