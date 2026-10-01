@@ -10,6 +10,7 @@ cd "$(dirname "$0")"
 FILES=(
   manifest.json
   core.js
+  license.js
   content.js
   background.js
   styles.css

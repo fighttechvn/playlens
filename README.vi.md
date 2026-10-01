@@ -29,6 +29,23 @@ Phía trên bảng là phần **tổng kết**: ở trang tìm kiếm là 10 k�
 
 **▸ Chi tiết một app** — lượt cài chính xác bên cạnh mốc của Play, ngày ra mắt, lượt cài mỗi ngày (tính từ lúc ra mắt và đo thực tế), tỉ lệ đánh giá trên lượt cài, phân bố 1–5★ kèm tỉ lệ 1–2★, giá / mua trong app / quảng cáo, thể loại, version, Android tối thiểu, nhãn an toàn dữ liệu, email và website nhà phát triển (có nút copy), ảnh chụp màn hình trên store, link sang AppBrain, APKMirror và App Store. Khi bạn bấm: **Compare countries** (mỗi quốc gia một yêu cầu) và **Low-star reviews** — các review 1–3★ mới nhất kèm những từ xuất hiện nhiều, cùng chức năng xuất review lọc theo số sao và ngày. Tên người viết review được cố ý bỏ ra.
 
+## PlayLens Pro (tuỳ chọn, trả phí)
+
+Mọi thứ ở trên vẫn **miễn phí**. Pro thêm những thứ tốn công theo thời gian hoặc chạy nền:
+
+| | Free | Pro |
+|---|---|---|
+| **Rank tracker** — theo dõi một từ khoá ở một quốc gia cho app trong Watchlist; mỗi ngày service worker kiểm tra và vẽ vị trí theo thời gian | 3 cặp | 150 cặp, 90 ngày |
+| **Cảnh báo** — thông báo desktop khi từ khoá lên/xuống hạng hoặc app đang theo dõi đổi version, giá, rating | — | ✓ (xin quyền tuỳ chọn `notifications`) |
+| **So sánh app** — chọn app trong bảng (⇄), bảng cạnh nhau, biểu đồ lịch sử cài đặt và rating | 2 app, không biểu đồ | tới 6 app + biểu đồ |
+| **Báo cáo** — một file HTML/Markdown về thay đổi của Watchlist trong 7 / 30 / 90 ngày | — | ✓ |
+| **Sao lưu và khôi phục** Watchlist, lịch sử và thứ hạng | — | ✓ |
+| **Danh sách từ khoá** — lưu bộ từ khoá, *Score all*, điểm cơ hội theo quốc gia | chấm 10 từ đầu | không giới hạn, 20 danh sách |
+
+Pro bán qua [Polar](https://polar.sh) (merchant of record: lo thanh toán, thuế, hoàn tiền); bạn nhận khoá bản quyền qua email và dán vào trang cài đặt. Khoá được kiểm tra với `api.polar.sh` khoảng mỗi ngày (tối đa 3 trình duyệt mỗi khoá); mất mạng hai tuần vẫn dùng được Pro. Đây là sự tiện lợi và cách ủng hộ dự án, không phải DRM — mã nguồn MIT, ai cũng đọc được cách kiểm tra.
+
+**Thiết lập (người bảo trì).** Tạo sản phẩm trong Polar (Monthly / Yearly / Lifetime) kèm benefit *License Keys* (tiền tố `PLAY-`, 3 lượt kích hoạt), rồi điền `CONFIG.ORG_ID` và `CONFIG.CHECKOUT` trong [`license.js`](license.js) và `CHECKOUT` trong `docs/index.html`. Thử trước trên sandbox của Polar bằng cách đặt `CONFIG.API` là `https://sandbox-api.polar.sh`. Đề xuất và số liệu ở [research/PREMIUM.md](research/PREMIUM.md). Khi chưa điền id, trang cài đặt ghi "sắp mở bán" và không gửi gì tới Polar.
+
 **Chạy nền** — khoảng 6 giờ một lần, service worker đọc lại trang của các app trong Watchlist và hiện số app có thay đổi lên icon tiện ích. Watchlist trống thì không có yêu cầu nào được gửi, và có thể tắt hẳn.
 
 Điều PlayLens không làm: ước tính doanh thu. Con số đó không đọc được từ trang công khai nên PlayLens không đoán.
@@ -90,6 +107,7 @@ Cách cài đặt cho cả hai đường (OAuth client, refresh token, item ID) 
 | `rank` | bật | Số thứ hạng trên card tìm kiếm, trong bảng và file xuất |
 | `history` | bật | Ghi số liệu mỗi app tối đa một lần một ngày, để đo tăng trưởng |
 | `bgRefresh` | bật | Tự cập nhật Watchlist ở nền, khoảng 6 giờ một lần |
+| `alerts` | tắt | Pro: thông báo desktop (bật sẽ xin quyền `notifications`) |
 
 Ngoài ra còn lưu `cols` (các cột của bảng) và `countries` (mã quốc gia 2 chữ cái cho *Compare countries* và tab Keywords, tối đa 8; mặc định `US, GB, DE, JP, VN`).
 
@@ -99,7 +117,7 @@ Ngoài popup nhanh còn có **trang cài đặt đầy đủ** (`options.html`):
 
 ## Cách hoạt động
 
-- `core.js` chứa mọi thứ chạy được mà không cần trang web — parse, định dạng, chấm điểm — dùng chung cho content script và service worker. `node tools/test-core.js` kiểm tra nó với trang Play thật.
+- `core.js` chứa mọi thứ chạy được mà không cần trang web — parse, định dạng, chấm điểm — dùng chung cho content script và service worker. `node tools/test-core.js` kiểm tra nó với trang Play thật; `node tools/test-pro.js` kiểm tra hàm Pro và logic khoá bản quyền ngoại tuyến. `license.js` chứa các lệnh gọi Polar và giới hạn Free/Pro.
 - Content script quét mọi thẻ `details?id=...` có chứa ảnh (app card). Với mỗi app, extension fetch trang chi tiết với `hl=en&gl=US` (label ổn định) và đọc khối dữ liệu listing trong `AF_initDataCallback`: lượt cài chính xác, phân bố rating, ngày ra mắt, giá, mua trong app, quảng cáo, thể loại, version, liên hệ nhà phát triển, ảnh chụp màn hình, an toàn dữ liệu.
 - Review và gợi ý tìm kiếm lấy từ đúng endpoint `batchexecute` mà trang Play tự gọi. Chỉ gửi yêu cầu khi bạn bấm.
 - **Điểm cơ hội** của một từ khóa là `0.35 × nhu cầu + 0.30 × kiếm tiền + 0.25 × cạnh tranh + 0.10 × điểm yếu`, tính từ 10 kết quả đầu: ≥ 60 *Open*, 45–59 *Contested*, thấp hơn là *Crowded*. Đây là cách xếp thứ tự ý tưởng, không phải dự báo.

@@ -9,11 +9,13 @@ const DEFAULTS = {
   rank: true,
   history: true,
   bgRefresh: true,
+  alerts: false,
 };
 const DEFAULT_COUNTRIES = ['US', 'GB', 'DE', 'JP', 'VN'];
 
 const boxes = {};
 for (const key of Object.keys(DEFAULTS)) {
+  if (key === 'alerts') continue; // has its own handler: it asks for a permission
   boxes[key] = document.getElementById(key);
 }
 const countries = document.getElementById('countries');
@@ -30,6 +32,7 @@ chrome.storage.sync.get({ ...DEFAULTS, countries: DEFAULT_COUNTRIES }, (saved) =
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === 'local') {
     showUsage();
+    if ('license' in changes) renderPro();
     return;
   }
   if (area !== 'sync') return;
@@ -108,7 +111,7 @@ document.getElementById('clearHistory').addEventListener('click', () => {
 document.getElementById('clearWatch').addEventListener('click', () => {
   if (!confirm('Xóa toàn bộ Watchlist, gồm cả nhật ký thay đổi và thứ hạng từ khóa?')) return;
   removeWhere(
-    (k) => k === 'watch' || k.startsWith('w:') || k.startsWith('kw:'),
+    (k) => k === 'watch' || k.startsWith('w:') || k.startsWith('kw:') || k.startsWith('rk:'),
     (keys) => {
       say('Đã xóa ' + keys.filter((k) => k.startsWith('w:')).length + ' app khỏi Watchlist.');
       refreshBadge();
@@ -132,3 +135,138 @@ function showUsage() {
   });
 }
 showUsage();
+
+// ---------- PlayLens Pro ----------
+
+const L = PLSI.license;
+const $ = (id) => document.getElementById(id);
+const ERRORS = {
+  not_configured: 'Cổng thanh toán chưa được bật trong bản này — chưa thể kích hoạt khóa.',
+  empty: 'Hãy dán khóa bản quyền nhận qua email.',
+  not_found: 'Không tìm thấy khóa này. Kiểm tra lại từng ký tự (khóa bắt đầu bằng PLAY-).',
+  inactive: 'Khóa này đã bị thu hồi hoặc hết hạn.',
+  limit: 'Khóa đã dùng hết số thiết bị (3). Gỡ khóa ở một máy khác, hoặc quản lý thiết bị trong trang khách hàng của Polar.',
+  network: 'Không kết nối được tới Polar. Thử lại sau ít phút.',
+};
+const REASONS = {
+  revoked: 'Khóa đã bị thu hồi (huỷ thuê bao hoặc hoàn tiền).',
+  expired: 'Khóa đã hết hạn. Gia hạn để dùng lại Pro.',
+  lapsed: 'Không kiểm tra được khóa quá 14 ngày. Mở lại kết nối mạng để xác nhận.',
+};
+const licStatus = $('licStatus');
+let busy = false;
+
+function plansRow() {
+  const box = $('plans');
+  box.textContent = '';
+  for (const p of L.plans()) {
+    const node = document.createElement(p.url ? 'a' : 'span');
+    node.textContent = p.id === 'monthly' ? 'Tháng · ' + p.price : p.id === 'yearly' ? 'Năm · ' + p.price : 'Trọn đời · ' + p.price;
+    if (p.url) {
+      node.href = p.url;
+      node.target = '_blank';
+      node.rel = 'noopener';
+    } else {
+      node.className = 'soon';
+      node.title = 'Sắp mở bán';
+    }
+    box.appendChild(node);
+  }
+  if (!L.plans().some((p) => p.url)) {
+    const note = document.createElement('div');
+    note.className = 'desc';
+    note.textContent = 'Sắp mở bán — giá dự kiến như trên.';
+    box.appendChild(note);
+  }
+}
+
+async function renderPro() {
+  const rec = await L.read();
+  const st = L.status(rec);
+  $('proBadge').textContent = st.pro ? 'Pro' : 'Free';
+  $('proBadge').classList.toggle('on', st.pro);
+  $('proTitle').textContent = st.pro ? 'PlayLens Pro đang bật' : 'Gói Free';
+  let desc;
+  if (st.pro) {
+    desc = st.lifetime ? 'Khóa trọn đời.' : 'Hết hạn ' + new Date(st.expiresAt).toLocaleDateString('vi-VN') + '.';
+  } else {
+    desc = REASONS[st.reason] || (L.configured() ? 'Dán khóa bản quyền để mở khóa Pro.' : 'Gói Pro sắp mở bán. Dán khóa ở đây khi có.');
+  }
+  $('proDesc').textContent = desc;
+  const has = !!(rec && rec.key);
+  $('keyForm').hidden = has && st.pro;
+  $('keyHave').hidden = !has;
+  $('licMask').textContent = has ? L.mask(rec.key) : '';
+  $('plans').hidden = st.pro && st.lifetime;
+  $('alertsRow').classList.toggle('off', !st.pro);
+  $('alerts').disabled = !st.pro;
+  const { alerts } = await new Promise((r) => chrome.storage.sync.get({ alerts: false }, r));
+  let allowed = false;
+  try {
+    allowed = await chrome.permissions.contains({ permissions: ['notifications'] });
+  } catch {
+    /* no permissions API: leave it off */
+  }
+  $('alerts').checked = st.pro && !!alerts && allowed;
+}
+
+function licSay(text, bad) {
+  licStatus.textContent = text;
+  licStatus.classList.toggle('err', !!bad);
+}
+
+$('licGo').addEventListener('click', async () => {
+  if (busy) return;
+  busy = true;
+  $('licGo').disabled = true;
+  licSay('Đang kiểm tra khóa…');
+  const label = 'PlayLens · ' + (navigator.userAgentData?.platform || navigator.platform || 'browser');
+  const r = await L.activate($('licKey').value, label);
+  busy = false;
+  $('licGo').disabled = false;
+  if (r.ok) {
+    $('licKey').value = '';
+    licSay('Đã bật Pro. Cảm ơn bạn đã ủng hộ PlayLens!');
+  } else {
+    licSay(ERRORS[r.error] || ERRORS.network, true);
+  }
+  renderPro();
+});
+$('licKey').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') $('licGo').click();
+});
+
+$('licOff').addEventListener('click', async () => {
+  if (!confirm('Gỡ khóa khỏi máy này? Bạn vẫn dùng được khóa trên máy khác, và dán lại ở đây bất cứ lúc nào.')) return;
+  await L.deactivate();
+  licSay('Đã gỡ khóa khỏi máy này.');
+  renderPro();
+});
+
+// The permission prompt only opens from a click, so ask here and nowhere else.
+$('alerts').addEventListener('change', async () => {
+  const box = $('alerts');
+  const out = $('alertsStatus');
+  out.textContent = '';
+  if (!box.checked) {
+    chrome.storage.sync.set({ alerts: false });
+    try {
+      await chrome.permissions.remove({ permissions: ['notifications'] });
+    } catch {
+      /* already gone */
+    }
+    return;
+  }
+  let granted = false;
+  try {
+    granted = await chrome.permissions.request({ permissions: ['notifications'] });
+  } catch {
+    granted = false;
+  }
+  box.checked = granted;
+  chrome.storage.sync.set({ alerts: granted });
+  if (!granted) out.textContent = 'Chưa có quyền thông báo nên cảnh báo vẫn tắt.';
+});
+
+plansRow();
+renderPro();
