@@ -16,6 +16,8 @@ FILES=(
   console.js
   console.html
   console-view.js
+  bridge-data.js
+  bridge.js
   background.js
   styles.css
   popup.html

@@ -51,6 +51,10 @@ Each list item keeps `firstSeen`, `lastSeen` and a `trail` (last 50 states). Unt
 
 History entry types: `view` (a page opened, deduped within 60 s), `change` (added / changed with field diffs / removed / back) and `action` (a button pressed, only from a fixed list of labels, never free text).
 
+## Reading it from Claude
+
+`mcp/` is a small MCP server (not shipped in the extension zip) that lets Claude query these records over a local WebSocket the extension opens only when the user turns it on. See `mcp/README.md`.
+
 ## Known gaps
 
 - Verified on live pages: releases overview, LiveOps, one-time products, subscriptions list, track page, app list. Not seen with rows: promo codes, the track "Releases" tab, product/subscription detail pages beyond the line parser.
