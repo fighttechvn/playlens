@@ -26,6 +26,8 @@ For Claude Desktop, add to `claude_desktop_config.json`:
 
 Then turn the switch on in the extension's Options and keep Chrome open. It reconnects within 30 seconds if the server starts later. Ask Claude to call `status` first.
 
+Only one Chrome profile can be connected at a time: a second profile that turns the switch on takes the connection over, and the first reconnects 30 seconds later and takes it back. With several profiles (several developer accounts), turn it on in one, ask Claude, then switch it off and turn it on in the next.
+
 Several Claude sessions can run the server at once: the first owns the port, the others forward to it.
 
 ## Tools
