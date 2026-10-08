@@ -2,6 +2,8 @@
 
 PlayLens reads the Play Console pages the developer opens and keeps one record per app (by package name), plus a history of changes and actions. Everything is local (`chrome.storage.local`); nothing is sent anywhere.
 
+Viewer (`console.html`) has two tabs: **Các app** (one row per app: production / open / internal / closed release + status, "In review" highlighted, events with next expiry, IAP / subscription / promo counts, licensing key, last capture; search, sort, export all apps) and **Chi tiết app** (everything saved for one app, history, CSV / JSON). The overview row comes from `cx.summary`.
+
 Files: `console-parse.js` (pure parsing and bookkeeping, tested in `tools/test-console.js`), `console.js` (content script on `play.google.com/console/*`), `console.html` + `console-view.js` (viewer, opened from Options → Play Console).
 
 ## API vs page reading

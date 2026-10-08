@@ -4,7 +4,7 @@ const cx = P.cx;
 const K = cx.KEY;
 const $ = (id) => document.getElementById(id);
 
-const state = { idx: { apps: {}, byApp: {} }, pkg: null, app: null, hist: [] };
+const state = { idx: { apps: {}, byApp: {} }, pkg: null, app: null, hist: [], rows: [] };
 
 function el(tag, props, ...kids) {
   const n = document.createElement(tag);
@@ -249,21 +249,137 @@ async function load(pkg) {
   render();
 }
 
-async function init() {
+// ---------- tabs ----------
+
+function showTab(name) {
+  for (const t of ['apps', 'detail']) {
+    $('tab-' + t).setAttribute('aria-selected', String(t === name));
+    $('pane-' + t).hidden = t !== name;
+  }
+}
+
+// ---------- the apps overview ----------
+
+function trackCell(t) {
+  if (!t) return el('span', { class: 'dim', text: '—' });
+  return el(
+    'div',
+    {},
+    el('b', { text: t.release && t.release !== '-' ? t.release : 'Draft' }),
+    el('small', {}, chip(t.status || '—', statusTone(t.status)), t.rollout ? ' ' + t.rollout : '')
+  );
+}
+
+function sortRows(rows, how) {
+  const by = {
+    seen: (x, y) => (y.sum.lastSeen || 0) - (x.sum.lastSeen || 0),
+    name: (x, y) => (x.sum.name || x.pkg).localeCompare(y.sum.name || y.pkg),
+    review: (x, y) => y.sum.inReview - x.sum.inReview || (y.sum.lastSeen || 0) - (x.sum.lastSeen || 0),
+    event: (x, y) => (x.sum.events.nextEnd || Infinity) - (y.sum.events.nextEnd || Infinity),
+  };
+  return rows.slice().sort(by[how] || by.seen);
+}
+
+function renderApps() {
+  const now = Date.now();
+  const q = $('q').value.trim().toLowerCase();
+  const rows = state.rows.filter((r) => !q || r.pkg.toLowerCase().includes(q) || (r.sum.name || '').toLowerCase().includes(q));
+
+  const withData = state.rows.filter((r) => r.has);
+  const soon = withData.filter((r) => r.sum.events.nextEnd && r.sum.events.nextEnd - now <= 3 * 86400000).length;
+  $('stats').replaceChildren(
+    ...[
+      [state.rows.length, 'app đã biết'],
+      [withData.length, 'app có dữ liệu'],
+      [withData.reduce((n, r) => n + r.sum.inReview, 0), 'release đang In review'],
+      [soon, 'app có event hết hạn ≤ 3 ngày'],
+      [withData.filter((r) => r.sum.hasKey).length, 'app đã lấy khóa Licensing'],
+    ].map(([n, l]) => el('div', { class: 'stat' }, el('b', { text: n }), el('span', { text: l })))
+  );
+
+  $('appsEmpty').hidden = state.rows.length > 0;
+  $('apps').hidden = !state.rows.length;
+  if (!state.rows.length) return;
+
+  table(
+    $('apps'),
+    [
+      {
+        h: 'App',
+        v: (r) => el('div', { class: 'appname' }, r.sum.name || r.pkg, el('small', { text: r.pkg })),
+      },
+      { h: 'Production', v: (r) => (r.has ? trackCell(r.sum.tracks.production) : null) },
+      { h: 'Open testing', v: (r) => (r.has ? trackCell(r.sum.tracks.open) : null) },
+      { h: 'Internal', v: (r) => (r.has ? trackCell(r.sum.tracks.internal) : null) },
+      {
+        h: 'Closed',
+        cls: 'cl',
+        v: (r) => (r.has && r.sum.tracks.closed.length ? el('div', {}, r.sum.tracks.closed.map((t) => el('div', {}, el('small', { text: (t.name || 'Closed').replace(/^Closed testing\s*-\s*/i, '') }), trackCell(t)))) : null),
+      },
+      {
+        h: 'Event',
+        cls: 'nw',
+        v: (r) => {
+          const e = r.sum.events;
+          if (!r.has || !e.total) return null;
+          const d = e.nextEnd ? Math.ceil((e.nextEnd - now) / 86400000) : null;
+          return el('div', {}, el('b', { text: e.total + ' event' }), el('small', {}, e.nextEnd ? chip(fmtDay(e.nextEnd) + (d != null ? ' · còn ' + d + ' ngày' : ''), d != null && d <= 3 ? 'warn' : 'good') : 'không có ngày hết hạn'));
+        },
+      },
+      {
+        h: 'IAP/Sub/Promo',
+        v: (r) => (r.has ? [r.sum.products, r.sum.subscriptions, r.sum.promos].join(' / ') : null),
+      },
+      {
+        h: 'Licensing',
+        v: (r) => (r.sum.hasKey ? chip('đã lưu', 'good') : r.has ? chip('chưa lấy', 'warn') : null),
+      },
+      { h: 'Ghi nhận', cls: 'nw', v: (r) => (r.sum.lastSeen ? el('span', { title: fmt(r.sum.lastSeen), text: fmtDay(r.sum.lastSeen) }) : 'chưa có dữ liệu') },
+      {
+        h: '',
+        v: (r) =>
+          el(
+            'div',
+            { class: 'row' },
+            el('button', { 'data-act': 'open', 'data-pkg': r.pkg, text: 'Chi tiết', disabled: !r.has }),
+            el('button', { 'data-act': 'pkg', 'data-pkg': r.pkg, text: 'Copy pkg' }),
+            r.sum.hasKey ? el('button', { 'data-act': 'key', 'data-pkg': r.pkg, text: 'Copy khóa' }) : null
+          ),
+      },
+    ],
+    sortRows(rows, $('sort').value),
+    q ? 'Không có app nào khớp.' : 'Chưa có app.'
+  );
+}
+
+async function refreshAll() {
   const all = await new Promise((r) => chrome.storage.local.get(null, r));
   state.idx = all[K.idx] || { apps: {}, byApp: {} };
   const pkgs = new Set(Object.keys(state.idx.apps || {}));
-  for (const k of Object.keys(all)) if (k.startsWith('c:')) pkgs.add(k.slice(2));
-  const have = [...pkgs].filter((p) => all[K.app(p)] || all[K.hist(p)]).sort();
-  const sel = $('app');
-  sel.replaceChildren();
-  for (const p of have) {
-    const name = (state.idx.apps[p] || {}).name;
-    sel.append(el('option', { value: p, text: (name ? name + ' — ' : '') + p }));
-  }
-  sel.disabled = !have.length;
-  await load(have[0] || null);
+  for (const k of Object.keys(all)) if (k.startsWith('c:') || k.startsWith('ch:')) pkgs.add(k.slice(k.indexOf(':') + 1));
+  const now = Date.now();
+  state.rows = [...pkgs].map((pkg) => {
+    const rec = all[K.app(pkg)] || null;
+    const known = state.idx.apps[pkg] || {};
+    const sum = cx.summary(rec || { pkg, name: known.name, appId: known.appId }, now);
+    if (!rec) sum.lastSeen = null;
+    if (!sum.name) sum.name = known.name || null;
+    return { pkg, has: !!rec, sum, rec };
+  });
   $('on').checked = all[K.flag] !== false;
+
+  const sel = $('app');
+  const keep = state.pkg;
+  const have = state.rows.filter((r) => r.has).map((r) => r.pkg).sort();
+  sel.replaceChildren(...have.map((p) => el('option', { value: p, text: ((state.idx.apps[p] || {}).name ? state.idx.apps[p].name + ' — ' : '') + p })));
+  sel.disabled = !have.length;
+  if (keep && have.includes(keep)) sel.value = keep;
+  renderApps();
+  await load(have.includes(keep) ? keep : have[0] || null);
+}
+
+async function init() {
+  await refreshAll();
 }
 
 function download(name, type, text) {
@@ -288,13 +404,44 @@ $('del').addEventListener('click', async () => {
   if (!state.pkg || !confirm('Xóa toàn bộ dữ liệu Console đã lưu của ' + state.pkg + ' (gồm lịch sử)?')) return;
   await P.store.remove([K.app(state.pkg), K.hist(state.pkg)]);
   say('Đã xóa dữ liệu của ' + state.pkg + '.');
-  init();
+  state.pkg = null;
+  refreshAll();
+});
+
+$('tab-apps').addEventListener('click', () => showTab('apps'));
+$('tab-detail').addEventListener('click', () => showTab('detail'));
+$('q').addEventListener('input', renderApps);
+$('sort').addEventListener('change', renderApps);
+$('allJson').addEventListener('click', () => {
+  const out = {};
+  for (const r of state.rows) if (r.has) out[r.pkg] = r.rec;
+  download('playlens-console-all.json', 'application/json', JSON.stringify({ exportedAt: Date.now(), apps: out }, null, 2));
+});
+$('apps').addEventListener('click', async (e) => {
+  const b = e.target.closest('button[data-act]');
+  if (!b) return;
+  const pkg = b.dataset.pkg;
+  const row = state.rows.find((r) => r.pkg === pkg);
+  if (b.dataset.act === 'open') {
+    $('app').value = pkg;
+    await load(pkg);
+    showTab('detail');
+  } else if (b.dataset.act === 'pkg') {
+    await navigator.clipboard.writeText(pkg);
+    say('Đã copy ' + pkg + '.');
+  } else if (b.dataset.act === 'key' && row && row.rec && row.rec.license) {
+    await navigator.clipboard.writeText(row.rec.license.key);
+    say('Đã copy khóa Licensing của ' + pkg + '.');
+  }
 });
 
 try {
+  let t = null;
   chrome.storage.onChanged.addListener((ch, area) => {
-    if (area !== 'local' || !state.pkg) return;
-    if (ch[K.app(state.pkg)] || ch[K.hist(state.pkg)]) load(state.pkg);
+    if (area !== 'local') return;
+    if (!Object.keys(ch).some((k) => /^(c|ch|cx):|^consoleTrack$/.test(k))) return;
+    clearTimeout(t);
+    t = setTimeout(refreshAll, 400);
   });
 } catch {
   /* page opened outside the extension */

@@ -223,6 +223,29 @@ const productsTable = {
   idx = cx.learn(idx, 'vn.fighttech.colorbynumber', null, null, null);
   check('index: appId → package, name kept', idx.byApp['4972598606845725088'] === 'vn.fighttech.colorbynumber' && idx.apps['vn.fighttech.colorbynumber'].name === 'Calmly');
 
+  // overview row
+  {
+    const n0 = Date.UTC(2026, 9, 8);
+    const sm = cx.summary({
+      pkg: 'a.b.c', name: 'A', lastSeen: 5,
+      releases: [
+        { track: 'production', trackName: 'Production', release: '1.2.5', status: 'Available on Google Play', updatedTs: 1 },
+        { track: 'production', trackName: 'Production', release: '1.2.6', status: 'In review', inReview: true, updatedTs: 2 },
+        { track: 'open', trackName: 'Open testing', release: '1.2.6', status: 'Available to testers', updatedTs: 3 },
+        { track: 'closed', trackName: 'Closed testing - Alpha', release: '-', status: 'Draft' },
+        { track: 'internal', trackName: 'Internal testing', release: '9', status: 'Old', gone: true },
+      ],
+      events: [
+        { name: 'Sale', end: n0 + 2 * 86400000, status: 'Live' },
+        { name: 'Old', end: n0 - 86400000, status: 'Live' },
+      ],
+      products: [{ id: 'x' }, { id: 'y', gone: true }], license: { key: 'K', length: 399 },
+    }, n0);
+    check('summary: newest release per track, gone ignored', sm.tracks.production.release === '1.2.6' && sm.tracks.open.release === '1.2.6' && sm.tracks.internal === null && sm.tracks.closed.length === 1, sm.tracks);
+    check('summary: in review, events, products, key', sm.inReview === 1 && sm.events.nextName === 'Sale' && sm.events.active === 1 && sm.products === 1 && sm.hasKey && sm.keyLength === 399, sm);
+    check('summary: empty record does not throw', cx.summary(null, n0).tracks.production === null);
+  }
+
   // csv
   const csv = cx.toCsv(app, hist);
   check('csv: header + dated rows', csv.split('\n')[0].startsWith('type,name') && csv.includes('release,') && csv.includes('history/change'), csv.split('\n').slice(0, 3));

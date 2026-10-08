@@ -511,6 +511,39 @@
     return i;
   };
 
+  // One row for the apps overview: what matters about an app at a glance.
+  cx.summary = function summary(app, now) {
+    const a = app || {};
+    const live = (list) => (list || []).filter((x) => x && !x.gone);
+    const rels = live(a.releases);
+    const newest = (list) => list.slice().sort((x, y) => (y.updatedTs || 0) - (x.updatedTs || 0))[0] || null;
+    const pick1 = (r) => (r ? { release: r.release, latestVersion: r.latestVersion, status: r.status, rollout: r.rollout, inReview: !!r.inReview, updated: r.updated, updatedTs: r.updatedTs, name: r.trackName } : null);
+    const tracks = {};
+    for (const k of ['production', 'open', 'internal']) tracks[k] = pick1(newest(rels.filter((r) => r.track === k)));
+    // several closed tracks can exist (Alpha, Beta…): one entry for each
+    const closedNames = [...new Set(rels.filter((r) => r.track === 'closed').map((r) => r.trackName))];
+    tracks.closed = closedNames.map((n) => pick1(newest(rels.filter((r) => r.track === 'closed' && r.trackName === n))));
+    const evs = live(a.events);
+    const ended = (e) => e.end != null && e.end < now;
+    const upcoming = evs.filter((e) => e.end != null && !ended(e)).sort((x, y) => x.end - y.end)[0] || null;
+    return {
+      pkg: a.pkg,
+      appId: a.appId || null,
+      name: a.name || null,
+      tracks,
+      inReview: rels.filter((r) => r.inReview).length,
+      events: { total: evs.length, active: evs.filter((e) => /live|active|running/i.test(e.status || '') && !ended(e)).length, nextEnd: upcoming ? upcoming.end : null, nextName: upcoming ? upcoming.name : null },
+      products: live(a.products).length,
+      subscriptions: live(a.subscriptions).length,
+      promos: live(a.promos).length,
+      versions: live(a.versions).length,
+      hasKey: !!(a.license && a.license.key),
+      keyLength: a.license ? a.license.length : 0,
+      firstSeen: a.firstSeen || null,
+      lastSeen: a.lastSeen || null,
+    };
+  };
+
   cx.KEY = { idx: 'cx:idx', app: (pkg) => 'c:' + pkg, hist: (pkg) => 'ch:' + pkg, flag: 'consoleTrack' };
   cx.HISTORY_CAP = HISTORY_CAP;
 

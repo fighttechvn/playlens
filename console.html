@@ -42,7 +42,7 @@
       font-size: 14px;
       line-height: 1.5;
     }
-    .wrap { max-width: 1120px; margin: 0 auto; padding: 28px 20px 56px; }
+    .wrap { max-width: 1360px; margin: 0 auto; padding: 28px 20px 56px; }
     h1 { margin: 0 0 4px; font-size: 22px; }
     h2 {
       margin: 28px 0 8px;
@@ -105,6 +105,25 @@
     .hist time { color: var(--muted); font-variant-numeric: tabular-nums; }
     .hist .d { color: var(--muted); font-size: 12px; }
     .status { min-height: 19px; margin-top: 8px; font-size: 12.5px; color: var(--muted); }
+    .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin: 0 0 16px; }
+    .tabs button { border: 0; border-bottom: 2px solid transparent; border-radius: 0; padding: 9px 14px; color: var(--muted); font-weight: 500; }
+    .tabs button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+    .tabs button:hover { background: transparent; color: var(--fg); }
+    .stats { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+    .stat { padding: 8px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); min-width: 130px; }
+    .stat b { display: block; font-size: 20px; font-variant-numeric: tabular-nums; }
+    .stat span { color: var(--muted); font-size: 12px; }
+    input[type="search"] { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: transparent; color: var(--fg); font: inherit; font-size: 13px; min-width: 240px; }
+    input[type="search"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .appname { font-weight: 600; }
+    .appname small, td small { display: block; color: var(--muted); font-weight: 400; font-size: 12px; }
+    .appname small { font-family: ui-monospace, Menlo, Consolas, monospace; }
+    td .row { display: flex; gap: 4px; flex-direction: column; align-items: stretch; }
+    #apps th, #apps td { padding: 8px 9px; }
+    td button { padding: 4px 10px; font-size: 12px; white-space: nowrap; }
+    .dim { color: var(--muted); }
+    td.cl { min-width: 140px; }
+    td.nw, td.nw small { white-space: nowrap; }
     [hidden] { display: none !important; }
   </style>
 </head>
@@ -117,19 +136,41 @@
     </p>
 
     <div class="bar">
-      <select id="app" aria-label="Chọn app"></select>
-      <button id="csv">Xuất CSV</button>
-      <button id="json">Xuất JSON</button>
-      <button id="del" class="danger">Xóa dữ liệu app này</button>
       <label class="tog"><input type="checkbox" id="on" /> Tự ghi nhận khi mở Console</label>
     </div>
-    <div class="status" id="status" role="status"></div>
 
-    <div id="empty" class="empty" hidden>
-      Chưa có dữ liệu. Mở Play Console, vào <b>All apps</b> rồi mở một app (Dashboard, Releases, Monetize…) — PlayLens tự lưu khi trang tải xong.
+    <div class="tabs" role="tablist" aria-label="Dữ liệu Console">
+      <button role="tab" id="tab-apps" aria-controls="pane-apps" aria-selected="true">Các app</button>
+      <button role="tab" id="tab-detail" aria-controls="pane-detail" aria-selected="false">Chi tiết app</button>
     </div>
 
-    <div id="body" hidden>
+    <section id="pane-apps" role="tabpanel" aria-labelledby="tab-apps">
+      <div class="stats" id="stats"></div>
+      <div class="bar">
+        <input type="search" id="q" placeholder="Tìm theo tên hoặc package" aria-label="Tìm app" />
+        <select id="sort" aria-label="Sắp xếp">
+          <option value="seen">Mới ghi nhận nhất</option>
+          <option value="name">Tên A–Z</option>
+          <option value="review">Đang In review trước</option>
+          <option value="event">Event sắp hết hạn trước</option>
+        </select>
+        <button id="allJson">Xuất JSON tất cả app</button>
+      </div>
+      <div class="scroll" id="apps"></div>
+      <div class="empty" id="appsEmpty" hidden>
+        Chưa có dữ liệu. Mở Play Console, vào <b>All apps</b> rồi mở một app (Dashboard, Releases, Monetize…) — PlayLens tự lưu khi trang tải xong.
+      </div>
+    </section>
+
+    <section id="pane-detail" role="tabpanel" aria-labelledby="tab-detail" hidden>
+      <div class="bar">
+        <select id="app" aria-label="Chọn app"></select>
+        <button id="csv">Xuất CSV</button>
+        <button id="json">Xuất JSON</button>
+        <button id="del" class="danger">Xóa dữ liệu app này</button>
+      </div>
+      <div id="empty" class="empty" hidden>Chọn một app ở tab <b>Các app</b>.</div>
+      <div id="body" hidden>
       <h2>Release theo track</h2>
       <div class="tracks" id="tracks"></div>
       <div class="scroll" id="releases"></div>
@@ -162,7 +203,9 @@
         </select>
       </div>
       <ul class="hist" id="hist"></ul>
-    </div>
+      </div>
+    </section>
+    <div class="status" id="status" role="status"></div>
   </div>
   <script src="core.js"></script>
   <script src="console-parse.js"></script>
