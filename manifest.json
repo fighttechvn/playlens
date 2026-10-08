@@ -31,8 +31,14 @@
   "content_scripts": [
     {
       "matches": ["https://play.google.com/*"],
+      "exclude_matches": ["https://play.google.com/console/*"],
       "js": ["core.js", "license.js", "content.js"],
       "css": ["styles.css"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://play.google.com/console/*"],
+      "js": ["core.js", "console-parse.js", "console.js"],
       "run_at": "document_idle"
     }
   ]

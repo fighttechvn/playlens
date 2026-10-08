@@ -12,6 +12,10 @@ FILES=(
   core.js
   license.js
   content.js
+  console-parse.js
+  console.js
+  console.html
+  console-view.js
   background.js
   styles.css
   popup.html

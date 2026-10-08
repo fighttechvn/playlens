@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PlayLens – Dữ liệu Console</title>
+  <style>
+    :root {
+      --bg: #fff;
+      --fg: #1f1f1f;
+      --muted: #5f6368;
+      --card: #f8f9fa;
+      --border: rgba(0, 0, 0, 0.12);
+      --accent: #0b57d0;
+      --accent-fg: #fff;
+      --good: #146c2e;
+      --warn: #8a5300;
+      --bad: #b3261e;
+      --chip: #e8eaed;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1f1f1f;
+        --fg: #e3e3e3;
+        --muted: #9aa0a6;
+        --card: #2a2a2a;
+        --border: rgba(255, 255, 255, 0.15);
+        --accent: #a8c7fa;
+        --accent-fg: #062e6f;
+        --good: #6dd58c;
+        --warn: #f5b768;
+        --bad: #f2b8b5;
+        --chip: #3c4043;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Google Sans Text', Roboto, Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 28px 20px 56px; }
+    h1 { margin: 0 0 4px; font-size: 22px; }
+    h2 {
+      margin: 28px 0 8px;
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+    .sub { margin: 0 0 18px; color: var(--muted); font-size: 13px; max-width: 70ch; }
+    .bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
+    select, button {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--fg);
+      font: inherit;
+      font-size: 13px;
+    }
+    button { cursor: pointer; }
+    button:hover { background: var(--card); }
+    button.primary { background: var(--accent); color: var(--accent-fg); border-color: transparent; }
+    button.primary:hover { background: var(--accent); opacity: 0.9; }
+    button.danger { color: var(--bad); }
+    select:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    label.tog { display: inline-flex; gap: 8px; align-items: center; cursor: pointer; margin-left: auto; font-size: 13px; }
+    .scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--card); }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { padding: 9px 12px; text-align: left; vertical-align: top; border-top: 1px solid var(--border); }
+    thead th { border-top: 0; color: var(--muted); font-weight: 600; font-size: 12px; white-space: nowrap; }
+    td { font-variant-numeric: tabular-nums; }
+    td.id { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; color: var(--muted); }
+    tr.gone td { opacity: 0.5; text-decoration: line-through; }
+    .chip { display: inline-block; padding: 1px 8px; border-radius: 999px; background: var(--chip); font-size: 12px; font-weight: 500; white-space: nowrap; }
+    .chip.good { color: var(--good); }
+    .chip.warn { color: var(--warn); }
+    .chip.bad { color: var(--bad); }
+    .tracks { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .track { padding: 8px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); min-width: 190px; }
+    .track b { display: block; }
+    .track small { color: var(--muted); }
+    .empty { padding: 16px; color: var(--muted); }
+    details { margin: 6px 0 0; }
+    summary { cursor: pointer; color: var(--accent); font-size: 12px; }
+    ul.trail { margin: 4px 0 0; padding-left: 18px; color: var(--muted); font-size: 12px; }
+    .key {
+      display: block;
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--card);
+      font: 12px/1.5 ui-monospace, Menlo, Consolas, monospace;
+      word-break: break-all;
+    }
+    .hist { list-style: none; margin: 0; padding: 0; border: 1px solid var(--border); border-radius: 12px; background: var(--card); max-height: 520px; overflow: auto; }
+    .hist li { display: grid; grid-template-columns: 150px 78px 1fr; gap: 12px; padding: 8px 12px; border-top: 1px solid var(--border); font-size: 13px; }
+    .hist li:first-child { border-top: 0; }
+    .hist time { color: var(--muted); font-variant-numeric: tabular-nums; }
+    .hist .d { color: var(--muted); font-size: 12px; }
+    .status { min-height: 19px; margin-top: 8px; font-size: 12.5px; color: var(--muted); }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Dữ liệu Play Console</h1>
+    <p class="sub">
+      PlayLens ghi lại những gì bạn mở trong Play Console — release từng track, phiên bản, sự kiện (ngày bắt đầu / hết hạn), sản phẩm,
+      subscription, mã khuyến mãi, khóa Licensing — theo từng app (package name), kèm lịch sử thay đổi và thao tác. Mọi thứ nằm trên máy bạn.
+    </p>
+
+    <div class="bar">
+      <select id="app" aria-label="Chọn app"></select>
+      <button id="csv">Xuất CSV</button>
+      <button id="json">Xuất JSON</button>
+      <button id="del" class="danger">Xóa dữ liệu app này</button>
+      <label class="tog"><input type="checkbox" id="on" /> Tự ghi nhận khi mở Console</label>
+    </div>
+    <div class="status" id="status" role="status"></div>
+
+    <div id="empty" class="empty" hidden>
+      Chưa có dữ liệu. Mở Play Console, vào <b>All apps</b> rồi mở một app (Dashboard, Releases, Monetize…) — PlayLens tự lưu khi trang tải xong.
+    </div>
+
+    <div id="body" hidden>
+      <h2>Release theo track</h2>
+      <div class="tracks" id="tracks"></div>
+      <div class="scroll" id="releases"></div>
+
+      <h2>Phiên bản (version code)</h2>
+      <div class="scroll" id="versions"></div>
+
+      <h2>Sự kiện (ngày bắt đầu → hết hạn)</h2>
+      <div class="scroll" id="events"></div>
+
+      <h2>Sản phẩm trả phí một lần (IAP)</h2>
+      <div class="scroll" id="products"></div>
+
+      <h2>Subscription</h2>
+      <div class="scroll" id="subs"></div>
+
+      <h2>Mã khuyến mãi</h2>
+      <div class="scroll" id="promos"></div>
+
+      <h2>Khóa Licensing (Monetization setup)</h2>
+      <div id="license"></div>
+
+      <h2>Lịch sử</h2>
+      <div class="bar">
+        <select id="histKind" aria-label="Lọc lịch sử">
+          <option value="">Tất cả</option>
+          <option value="change">Thay đổi dữ liệu</option>
+          <option value="action">Thao tác của bạn</option>
+          <option value="view">Trang đã mở</option>
+        </select>
+      </div>
+      <ul class="hist" id="hist"></ul>
+    </div>
+  </div>
+  <script src="core.js"></script>
+  <script src="console-parse.js"></script>
+  <script src="console-view.js"></script>
+</body>
+</html>
