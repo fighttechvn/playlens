@@ -4,7 +4,7 @@ const cx = P.cx;
 const K = cx.KEY;
 const $ = (id) => document.getElementById(id);
 
-const state = { idx: { apps: {}, byApp: {} }, pkg: null, app: null, hist: [], rows: [] };
+const state = { idx: { apps: {}, byApp: {} }, pkg: null, app: null, hist: [], rows: [], hists: {} };
 
 function el(tag, props, ...kids) {
   const n = document.createElement(tag);
@@ -364,8 +364,10 @@ async function refreshAll() {
     const sum = cx.summary(rec || { pkg, name: known.name, appId: known.appId }, now);
     if (!rec) sum.lastSeen = null;
     if (!sum.name) sum.name = known.name || null;
-    return { pkg, has: !!rec, sum, rec };
+    return { pkg, has: !!rec, sum, rec, devId: known.devId || null };
   });
+  state.hists = {};
+  for (const r of state.rows) state.hists[r.pkg] = all[K.hist(r.pkg)] || [];
   $('on').checked = all[K.flag] !== false;
 
   const sel = $('app');
@@ -412,10 +414,69 @@ $('tab-apps').addEventListener('click', () => showTab('apps'));
 $('tab-detail').addEventListener('click', () => showTab('detail'));
 $('q').addEventListener('input', renderApps);
 $('sort').addEventListener('change', renderApps);
+
+// ---------- reports ----------
+
+const stampName = () => new Date().toISOString().slice(0, 10);
+
+// The rows the overview shows right now (search + sort), so the report matches the screen.
+function shownRows() {
+  const q = $('q').value.trim().toLowerCase();
+  return sortRows(state.rows.filter((r) => !q || r.pkg.toLowerCase().includes(q) || (r.sum.name || '').toLowerCase().includes(q)), $('sort').value);
+}
+function currentRow() {
+  return state.rows.find((r) => r.pkg === state.pkg && r.has) || null;
+}
+const reportHtml = (rows, title) => P.cxReport.html(rows, Date.now(), { title, hist: state.hists });
+
+// PDF: print the report from a hidden frame; Chrome's print dialog saves it as PDF.
+function printPdf(html) {
+  const f = el('iframe', { style: 'position:fixed;left:-9999px;top:0;width:1100px;height:800px;border:0', 'aria-hidden': 'true' });
+  f.addEventListener('load', () => {
+    setTimeout(() => {
+      f.contentWindow.focus();
+      f.contentWindow.print();
+      setTimeout(() => f.remove(), 60000);
+    }, 150);
+  });
+  f.srcdoc = html;
+  document.body.append(f);
+}
+
+$('repHtml').addEventListener('click', () => {
+  const rows = shownRows();
+  if (!rows.length) return say('Chưa có app nào để xuất.');
+  download('playlens-console-' + stampName() + '.html', 'text/html', reportHtml(rows, 'PlayLens · Báo cáo Play Console'));
+  say('Đã xuất báo cáo HTML của ' + rows.length + ' app.');
+});
+$('repPdf').addEventListener('click', () => {
+  const rows = shownRows();
+  if (!rows.length) return say('Chưa có app nào để xuất.');
+  printPdf(reportHtml(rows, 'PlayLens · Báo cáo Play Console'));
+  say('Chọn “Lưu dưới dạng PDF” trong hộp thoại in.');
+});
+$('repCsv').addEventListener('click', () => {
+  const rows = shownRows();
+  if (!rows.length) return say('Chưa có app nào để xuất.');
+  download('playlens-console-apps-' + stampName() + '.csv', 'text/csv', P.cxReport.csvApps(rows, Date.now()));
+  say('Đã xuất CSV của ' + rows.length + ' app.');
+});
+$('appHtml').addEventListener('click', () => {
+  const r = currentRow();
+  if (!r) return;
+  download(r.pkg + '-report-' + stampName() + '.html', 'text/html', reportHtml([r], 'PlayLens · ' + (r.sum.name || r.pkg)));
+});
+$('appPdf').addEventListener('click', () => {
+  const r = currentRow();
+  if (!r) return;
+  printPdf(reportHtml([r], 'PlayLens · ' + (r.sum.name || r.pkg)));
+  say('Chọn “Lưu dưới dạng PDF” trong hộp thoại in.');
+});
+
 $('allJson').addEventListener('click', () => {
   const out = {};
   for (const r of state.rows) if (r.has) out[r.pkg] = r.rec;
-  download('playlens-console-all.json', 'application/json', JSON.stringify({ exportedAt: Date.now(), apps: out }, null, 2));
+  download('playlens-console-all-' + stampName() + '.json', 'application/json', JSON.stringify({ exportedAt: Date.now(), apps: out }, null, 2));
 });
 $('apps').addEventListener('click', async (e) => {
   const b = e.target.closest('button[data-act]');

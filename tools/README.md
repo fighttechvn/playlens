@@ -13,6 +13,7 @@ at the top of the file — adjust it if you move things around.
   Chrome Web Store expects) from a live Google Play search page, with the extension
   loaded unpacked into a fresh profile: panel, cards, details, Watchlist, Keywords
 - `test-bridge.js` → checks `bridge-data.js`, what the MCP server may read from the extension (see `mcp/README.md`; `mcp/test.mjs` is the end-to-end check)
+- `test-report.js` → checks `console-report.js` (HTML report and apps CSV exported from the Console viewer)
 - `publish.sh` → upload a build to the Chrome Web Store (see `store/api-publishing.md`)
 - `cws-setup.js` → one-command setup of the store credentials (`.env.cws` + GitHub secrets); `--check` verifies them
 

@@ -51,6 +51,10 @@ Each list item keeps `firstSeen`, `lastSeen` and a `trail` (last 50 states). Unt
 
 History entry types: `view` (a page opened, deduped within 60 s), `change` (added / changed with field diffs / removed / back) and `action` (a button pressed, only from a fixed list of labels, never free text).
 
+## Reports
+
+The viewer exports a report for the apps on screen (search and sort apply): **HTML** (one self-contained file, no script), **PDF** (the same report through the print dialog, “Save as PDF”) and **CSV** (one line per app, with release per track, events, counts and licensing key). The detail tab does the same for one app, and exports its dated rows as CSV.
+
 ## Reading it from Claude
 
 `mcp/` is a small MCP server (not shipped in the extension zip) that lets Claude query these records over a local WebSocket the extension opens only when the user turns it on. See `mcp/README.md`.

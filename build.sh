@@ -13,6 +13,7 @@ FILES=(
   license.js
   content.js
   console-parse.js
+  console-report.js
   console.js
   console.html
   console-view.js

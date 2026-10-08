@@ -124,6 +124,7 @@
     .dim { color: var(--muted); }
     td.cl { min-width: 140px; }
     td.nw, td.nw small { white-space: nowrap; }
+    .grp { display: inline-flex; gap: 6px; flex-wrap: wrap; }
     [hidden] { display: none !important; }
   </style>
 </head>
@@ -154,7 +155,12 @@
           <option value="review">Đang In review trước</option>
           <option value="event">Event sắp hết hạn trước</option>
         </select>
-        <button id="allJson">Xuất JSON tất cả app</button>
+        <span class="grp" role="group" aria-label="Xuất báo cáo">
+          <button id="repHtml" class="primary">Báo cáo HTML</button>
+          <button id="repPdf">Báo cáo PDF</button>
+          <button id="repCsv">CSV các app</button>
+          <button id="allJson">JSON</button>
+        </span>
       </div>
       <div class="scroll" id="apps"></div>
       <div class="empty" id="appsEmpty" hidden>
@@ -165,8 +171,10 @@
     <section id="pane-detail" role="tabpanel" aria-labelledby="tab-detail" hidden>
       <div class="bar">
         <select id="app" aria-label="Chọn app"></select>
-        <button id="csv">Xuất CSV</button>
-        <button id="json">Xuất JSON</button>
+        <button id="appHtml" class="primary">Báo cáo HTML</button>
+        <button id="appPdf">Báo cáo PDF</button>
+        <button id="csv">CSV dữ liệu</button>
+        <button id="json">JSON</button>
         <button id="del" class="danger">Xóa dữ liệu app này</button>
       </div>
       <div id="empty" class="empty" hidden>Chọn một app ở tab <b>Các app</b>.</div>
@@ -209,6 +217,7 @@
   </div>
   <script src="core.js"></script>
   <script src="console-parse.js"></script>
+  <script src="console-report.js"></script>
   <script src="console-view.js"></script>
 </body>
 </html>
