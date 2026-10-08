@@ -270,3 +270,39 @@ $('alerts').addEventListener('change', async () => {
 
 plansRow();
 renderPro();
+
+// ---------- Claude (MCP) ----------
+// Local toggle (not synced: it only makes sense on the machine that runs the MCP server).
+const mcpBox = document.getElementById('mcpBridge');
+const mcpStatus = document.getElementById('mcpStatus');
+const MCP_TEXT = {
+  off: '',
+  connected: 'Đã kết nối với máy chủ MCP. Claude có thể đọc dữ liệu.',
+  waiting: 'Chưa thấy máy chủ MCP trên máy này. Chạy lệnh bên dưới (hoặc mở Claude Code) rồi giữ Chrome mở; PlayLens tự nối lại trong 30 giây.',
+};
+
+function showMcp() {
+  if (!mcpBox.checked) {
+    mcpStatus.textContent = '';
+    return;
+  }
+  try {
+    chrome.runtime.sendMessage({ type: 'plsi:bridge' }, (r) => {
+      void chrome.runtime.lastError;
+      mcpStatus.textContent = MCP_TEXT[(r && r.state) || 'waiting'] || '';
+    });
+  } catch {
+    mcpStatus.textContent = MCP_TEXT.waiting;
+  }
+}
+
+chrome.storage.local.get('mcpBridge', (o) => {
+  mcpBox.checked = !!(o && o.mcpBridge);
+  showMcp();
+});
+mcpBox.addEventListener('change', () => {
+  chrome.storage.local.set({ mcpBridge: mcpBox.checked }, () => setTimeout(showMcp, 800));
+});
+setInterval(() => {
+  if (mcpBox.checked && !document.hidden) showMcp();
+}, 5000);

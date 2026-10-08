@@ -2,3 +2,4 @@ dist/
 .DS_Store
 store/upload/
 .env.cws
+mcp/node_modules/

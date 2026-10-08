@@ -136,6 +136,16 @@
       background: var(--border);
       font-size: 12px;
     }
+    code.cmd {
+      display: block;
+      margin-top: 8px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      line-height: 1.7;
+      user-select: all;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
     button {
       padding: 8px 14px;
       border: 1px solid var(--border);
@@ -314,6 +324,35 @@
           <div class="desc">Mã 2 chữ cái, cách nhau bằng dấu phẩy, tối đa 8. Dùng cho nút <b>Compare countries</b> và tab Keywords. Mỗi quốc gia là một yêu cầu tới Play, chỉ gửi khi bạn bấm.</div>
           <input type="text" id="countries" spellcheck="false" autocomplete="off" placeholder="US, GB, DE, JP, VN" />
           <div class="status" id="countriesStatus"></div>
+        </span>
+      </div>
+    </div>
+
+    <h2>Play Console</h2>
+    <div class="card">
+      <div class="row field">
+        <span class="text">
+          <span class="name">Dữ liệu Play Console theo từng app</span>
+          <div class="desc">Khi bạn mở Play Console, PlayLens lưu release từng track (ngày + trạng thái), phiên bản, sự kiện (bắt đầu / hết hạn), sản phẩm IAP, subscription, mã khuyến mãi, khóa Licensing và lịch sử thao tác — gom theo package name. Chỉ lưu trên máy bạn, có thể xuất CSV / JSON.</div>
+          <div class="actions"><a href="console.html" target="_blank" rel="noopener"><button type="button" class="primary">Mở dữ liệu Console</button></a></div>
+        </span>
+      </div>
+    </div>
+
+    <h2>Claude (MCP)</h2>
+    <div class="card">
+      <label class="row">
+        <span class="text">
+          <span class="name">Cho Claude đọc dữ liệu PlayLens</span>
+          <div class="desc">Khi bật, PlayLens kết nối tới máy chủ MCP chạy ngay trên máy bạn (<code>127.0.0.1:17893</code>) để Claude hỏi dữ liệu đã lưu: release và event của từng app trong Play Console, Watchlist, lịch sử lượt cài. Chỉ đọc, không ghi, không gửi ra Internet, và khóa Pro không bao giờ được trả về. Tắt thì không có kết nối nào.</div>
+        </span>
+        <span class="switch"><input type="checkbox" id="mcpBridge" /><span class="slider"></span></span>
+      </label>
+      <div class="row field">
+        <span class="text">
+          <div class="status" id="mcpStatus" role="status"></div>
+          <div class="desc">Cài máy chủ một lần (cần Node 18+, mã nguồn ở thư mục <code>mcp/</code> của repo), rồi thêm vào Claude Code:</div>
+          <code class="cmd">cd mcp &amp;&amp; npm install<br />claude mcp add playlens -- node "$(pwd)/server.js"</code>
         </span>
       </div>
     </div>

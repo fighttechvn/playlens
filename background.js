@@ -10,7 +10,7 @@
 // user switched alerts on and allowed notifications — says what moved. Once a
 // day it asks Polar whether the licence key is still good (see license.js).
 
-importScripts('core.js', 'license.js');
+importScripts('core.js', 'license.js', 'console-parse.js', 'bridge-data.js', 'bridge.js');
 
 const P = globalThis.PLSI;
 
